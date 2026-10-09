@@ -8,6 +8,8 @@ import { PrecedentText } from '../components/parts';
 import { buildShareText, drawShareCard, shareOnX } from '../share';
 import type { Album } from '../storage';
 
+const GROUP_MARK: Record<string, string> = { chain: '連', block: '砦', crisis: '危', beneficiary: '国', style: '流', dismissal: '免', none: '平' };
+
 export function Result({ game, album, isNew, onAgain, onTitle, onAlbum }: { game: GameState; album: Album; isNew: string[]; onAgain: () => void; onTitle: () => void; onAlbum: () => void }) {
   const ending = primaryEnding(game);
   const name = countryName(game);
@@ -66,7 +68,7 @@ export function Result({ game, album, isNew, onAgain, onTitle, onAlbum }: { game
           </div>
         </div>
         <div class={`medal ${isNew.includes(ending.id) ? 'new' : ''}`}>
-          <div class="m">{ending.name.slice(0, 2)}</div>
+          <div class="m">{GROUP_MARK[ending.group] ?? '例'}</div>
           <div>
             <div class="k">エンディング</div>
             <div class="v">{ending.name}</div>

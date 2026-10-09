@@ -66,7 +66,7 @@ export function App() {
   };
 
   return (
-    <div class="shell">
+    <div class={`shell ${screen === 'court' ? 'has-side' : ''}`}>
       <main class="col">
         {screen === 'title' && <Title album={album} hasSave={!!saved} onStart={start} onDaily={daily} onResume={resume} onAlbum={() => setScreen('album')} />}
         {screen === 'court' && game && game.currentCase && <Court key={game.day + ':' + game.seed} game={game} onChange={change} onEnd={end} />}

@@ -53,6 +53,7 @@ h1, h2, h3, p { margin: 0; }
 .side { display: none; }
 @media (min-width: 1040px) {
   .shell { gap: 28px; align-items: flex-start; }
+  .shell.has-side::before { content: ''; width: 300px; flex: none; }
   .side { display: block; width: 300px; position: sticky; top: 16px; max-height: calc(100dvh - 32px); overflow: auto; align-self: flex-start; margin-top: 16px; }
   .side .book-paper { border: 2px solid var(--ink); }
   .col { margin: 0; }

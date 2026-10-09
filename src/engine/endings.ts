@@ -77,7 +77,8 @@ export function peopleVoice(s: GameState): { text: string; by: string } {
 
 // ---- 奇妙な法律トップ3 / 百年後新聞の見出し ----
 export function topPrecedents(s: GameState, n = 3): Precedent[] {
-  return [...s.precedents].sort((a, b) => b.citations - a.citations || levelRank(b) - levelRank(a) || a.no - b.no).slice(0, n);
+  const alive = (p: Precedent) => (p.overruledBy === undefined ? 1 : 0);
+  return [...s.precedents].sort((a, b) => alive(b) - alive(a) || b.citations - a.citations || levelRank(b) - levelRank(a) || a.no - b.no).slice(0, n);
 }
 const levelRank = (p: Precedent) => NODES[p.subject].level;
 

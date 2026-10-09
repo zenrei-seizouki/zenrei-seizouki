@@ -3,7 +3,7 @@ import { countryName, peopleVoice, topPrecedents } from '../../engine/endings';
 import { label } from '../../engine/ontology';
 import type { GameEvent, GameState, Precedent, CaseDef, MeterId } from '../../engine/types';
 import { METER_IDS, TERM } from '../../engine/types';
-import { Portrait, GavelIcon } from './art';
+import { GavelIcon, NewsPhoto } from './art';
 import { PrecedentText } from './parts';
 
 /** 判例発動カットイン。hit=true: この事件をしばる / false: 射程外 */
@@ -90,7 +90,7 @@ export function Extra({ events, c, day, last, onNext }: { events: GameEvent[]; c
           </div>
           <div class="photo">
             <div class="halftone">
-              <Portrait name={c.plaintiff.art} glyphFor={c.subject} />
+              <NewsPhoto issue={c.issue} fallbackArt={c.plaintiff.art} glyphFor={c.subject} />
             </div>
             <div class="body">
               <b>{news.sub}</b>

@@ -1,11 +1,12 @@
 import { useState } from 'preact/hooks';
 import { ENDING_TOTAL } from '../../data/endings';
-import { Portrait } from '../components/art';
+import { TitleArt, artUrl } from '../components/art';
 import type { Album } from '../storage';
 import { todayKey } from '../storage';
 
 export function Title({ album, hasSave, onStart, onDaily, onResume, onAlbum }: { album: Album; hasSave: boolean; onStart: () => void; onDaily: () => void; onResume: () => void; onAlbum: () => void }) {
   const [how, setHow] = useState(false);
+  const [keyFailed, setKeyFailed] = useState(false);
   const unlocked = Object.keys(album.endings).length;
   const today = todayKey();
   const dailyDone = album.dailyDone.includes(today);
@@ -17,7 +18,7 @@ export function Title({ album, hasSave, onStart, onDaily, onResume, onAlbum }: {
         <span>第一法廷　開廷</span>
       </div>
       <div class="key">
-        <Portrait name="title" group="scene" glyphFor="cat" />
+        {keyFailed ? <TitleArt /> : <img src={artUrl('scene', 'title')} alt="" onError={() => setKeyFailed(true)} draggable={false} />}
       </div>
       <h1>前例<br />製造機</h1>
       <div class="ruby">ZENREI SEIZOUKI</div>

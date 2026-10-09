@@ -118,7 +118,7 @@ export async function drawShareCard(s: GameState): Promise<string> {
   const cy = 120 + boxH + 120;
   ctx.font = `800 24px ${MINCHO}`;
   ctx.fillStyle = INK;
-  ctx.fillText('その結果、生まれた国', 70, cy - 58);
+  ctx.fillText('その結果、生まれた国', 70, cy - 82);
   ctx.font = `800 ${country.length > 9 ? 56 : 68}px ${MINCHO}`;
   ctx.fillStyle = RED;
   ctx.fillText(country, 74, cy + 4);
