@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>前例製造機 — UIモック v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Klee+One:wght@600&family=Noto+Sans+JP:wght@400;700;900&family=Shippori+Mincho+B1:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f6efdc; --paper-d:#e9dcbc; --ink:#231a12; --muted:#7c6a52;
+  --walnut:#3a2313; --walnut2:#5b371e; --oak:#7a4e2c;
+  --brass:#d6a93a; --brass-d:#9c7420;
+  --vermilion:#d0381f; --indigo:#22457a; --green:#2f6b45;
+  --pop:"Dela Gothic One",sans-serif; --mincho:"Shippori Mincho B1",serif; --hand:"Klee One",cursive;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:#17110b;color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;font-size:15px;line-height:1.6}
+button{font:inherit;cursor:pointer;border:none;color:inherit;background:none}
+
+/* ---------- モック用ナビ ---------- */
+.mocknav{position:sticky;top:0;z-index:100;display:flex;gap:6px;justify-content:center;padding:7px;background:#0d0906;color:#f5eedc;font-size:12px;flex-wrap:wrap;border-bottom:1px solid #2a2016}
+.mocknav span{opacity:.5;align-self:center}
+.mocknav button{background:#2a2016;padding:3px 10px;border-radius:999px}
+.mocknav button.on{background:var(--brass);color:#1a120a;font-weight:700}
+
+.phone{max-width:420px;margin:0 auto;min-height:calc(100dvh - 37px);position:relative;overflow:hidden;background:var(--walnut);display:flex;flex-direction:column}
+@media(min-width:600px){.phone{margin:18px auto;border-radius:28px;min-height:844px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 10px #0d0906}}
+.shake{animation:shake .38s}
+@keyframes shake{20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-3px,2px)}80%{transform:translate(2px,-1px)}}
+
+/* ---------- 上部バー ---------- */
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 12px 6px;background:linear-gradient(#24160c,#1a0f07);color:#f3e6c4;position:relative;z-index:5}
+.cal{width:42px;flex:none;background:#fffaf0;border-radius:5px;overflow:hidden;text-align:center;box-shadow:0 2px 0 #000}
+.cal .h{background:var(--vermilion);color:#fff;font-size:9px;font-weight:700;line-height:15px}
+.cal .d{font-family:var(--pop);color:var(--ink);font-size:20px;line-height:24px}
+.cal .t{font-size:8px;color:var(--muted);line-height:10px;padding-bottom:2px}
+.brand{flex:1;min-width:0}
+.brand .n{font-family:var(--pop);font-size:15px;letter-spacing:.08em;color:var(--brass)}
+.brand .s{font-size:10px;opacity:.6}
+.coin{flex:none;display:flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(214,169,58,.4)}
+.coin i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#ffe9a6,var(--brass) 55%,var(--brass-d));color:#3a2610;font-size:14px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.coin b{font-family:var(--pop);font-size:18px;color:#ffe9a6}
+.coin small{font-size:9px;opacity:.7;display:block;line-height:1}
+.coin.bump{animation:bump .6s}
+@keyframes bump{30%{transform:scale(1.3)}}
+.meters{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 12px 8px;background:#1a0f07;color:#f3e6c4;position:relative;z-index:5}
+.mt{display:flex;align-items:center;gap:4px;font-size:10px}
+.mt .ic{font-size:13px}
+.mt .bar{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.12);position:relative}
+.mt .bar::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(255,255,255,.4)}
+.mt .f{position:absolute;top:0;bottom:0;border-radius:3px;transition:all .8s cubic-bezier(.2,1.4,.4,1)}
+.mt .f.p{background:#f0c75e}.mt .f.n{background:#ef6b4a}
+.mt.hot .f{box-shadow:0 0 6px currentColor;animation:blink .8s infinite}
+@keyframes blink{50%{opacity:.4}}
+
+/* ---------- 法廷ステージ ---------- */
+.stage{position:relative;height:385px;flex:none;overflow:hidden;cursor:pointer;
+  background:
+    radial-gradient(ellipse at 50% 30%,rgba(255,210,140,.18),transparent 60%),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 2px,transparent 2px 70px),
+    linear-gradient(#4a2c17,#3a2313 55%,#26160b)}
+.stage::before{content:"";position:absolute;left:0;right:0;top:52%;height:6px;background:linear-gradient(#6d4426,#2a170b);box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.stage.compact{height:250px}
+.stage.compact .crest{display:none}
+.crest{position:absolute;left:50%;top:22px;transform:translateX(-50%);width:96px;height:96px;border-radius:50%;opacity:.16;
+  background:radial-gradient(circle,#ffe9a6,var(--brass) 60%,transparent 62%);display:grid;place-items:center;font-size:52px}
+.casetag{position:absolute;left:10px;top:10px;z-index:3;background:var(--paper);padding:5px 10px 6px;border-radius:2px;transform:rotate(-2deg);box-shadow:0 3px 8px rgba(0,0,0,.4);max-width:60%}
+.casetag::before{content:"";position:absolute;top:-6px;left:14px;width:10px;height:18px;border:2px solid #9aa3ad;border-radius:6px;border-bottom-color:transparent}
+.casetag .no{font-size:9px;color:var(--muted);letter-spacing:.1em}
+.casetag .tt{font-family:var(--pop);font-size:17px;line-height:1.2}
+.bookbtn{position:absolute;right:10px;top:10px;z-index:3;display:flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;border-radius:6px;
+  background:linear-gradient(#8b1f12,#5e130a);color:#f8dc93;font-family:var(--mincho);font-weight:800;font-size:12px;box-shadow:0 3px 0 #2f0904,0 4px 10px rgba(0,0,0,.4)}
+.bookbtn .cnt{background:#f8dc93;color:#5e130a;border-radius:999px;font-family:var(--pop);font-size:11px;padding:0 6px}
+.bookbtn.glow{animation:glow 1s 3}
+@keyframes glow{50%{box-shadow:0 0 0 4px rgba(248,220,147,.6),0 3px 0 #2f0904}}
+
+.podium{position:absolute;bottom:62px;width:130px;text-align:center;transition:filter .3s,transform .3s;z-index:2}
+.podium.pla{left:8px}.podium.def{right:8px}
+.podium .chara{width:72px;height:72px;margin:0 auto -8px;border-radius:50%;display:grid;place-items:center;font-size:42px;
+  background:radial-gradient(circle at 50% 40%,#fff8e6,#e8d6ac);box-shadow:0 4px 0 rgba(0,0,0,.25);position:relative;z-index:1}
+.podium.pla .chara{border:4px solid #4f79b5}.podium.def .chara{border:4px solid #c9533d}
+.podium .desk{background:linear-gradient(#7a4e2c,#4f3019);border-radius:6px 6px 0 0;padding:12px 6px 6px;box-shadow:inset 0 2px 0 rgba(255,255,255,.12)}
+.podium .plate{display:inline-block;font-family:var(--mincho);font-weight:800;font-size:11px;padding:0 10px;border-radius:3px;color:#fff;letter-spacing:.3em}
+.podium.pla .plate{background:var(--indigo)}.podium.def .plate{background:var(--vermilion)}
+.podium .nm{color:#f8e9c6;font-size:11px;font-weight:700;line-height:1.3;margin-top:3px}
+.podium .sb{color:#f8e9c6;opacity:.6;font-size:9px}
+.podium.quiet{filter:brightness(.55) saturate(.6)}
+.podium.talk .chara{animation:talk .22s infinite alternate}
+@keyframes talk{to{transform:translateY(-4px) rotate(-2deg)}}
+
+.sbubble{position:absolute;left:12px;right:12px;top:68px;z-index:4;background:#fffdf6;border-radius:16px;padding:10px 14px 12px;box-shadow:0 6px 0 rgba(0,0,0,.18),0 10px 24px rgba(0,0,0,.35);min-height:86px;animation:pop .2s}
+@keyframes pop{from{transform:scale(.92);opacity:.3}}
+.sbubble::after{content:"";position:absolute;bottom:-14px;border:14px solid transparent;border-top-color:#fffdf6;border-bottom:0}
+.sbubble.pla::after{left:52px}.sbubble.def::after{right:52px}
+.sbubble .who{font-size:10px;font-weight:900;letter-spacing:.05em}
+.sbubble.pla .who{color:var(--indigo)}.sbubble.def .who{color:var(--vermilion)}
+.sbubble .txt{font-size:16px;font-weight:700;line-height:1.55;min-height:2.6em}
+.sbubble .nxt{position:absolute;right:12px;bottom:4px;font-size:11px;color:var(--muted);animation:nudge .6s infinite alternate}
+@keyframes nudge{to{transform:translateY(3px)}}
+.cite{background:linear-gradient(transparent 55%,#ffd65a 55%);font-weight:900}
+
+.gallery{position:absolute;left:0;right:0;bottom:0;height:62px;z-index:3;
+  background:linear-gradient(transparent 0 18px,#2a170b 18px),repeating-linear-gradient(90deg,#6d4426 0 5px,transparent 5px 26px);}
+.gallery::before{content:"";position:absolute;left:0;right:0;top:14px;height:6px;background:linear-gradient(#8a5a33,#4a2c17)}
+.faces{position:absolute;left:0;right:0;bottom:4px;display:flex;justify-content:space-around;font-size:26px;filter:brightness(.85)}
+.faces span{display:inline-block;animation:bob 1.8s infinite ease-in-out}
+.faces span:nth-child(2n){animation-delay:-.6s}.faces span:nth-child(3n){animation-delay:-1.1s}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.faces.cheer span{animation:jump .35s infinite alternate}
+.faces.boo span{animation:boo .2s infinite alternate}
+@keyframes jump{to{transform:translateY(-10px)}}
+@keyframes boo{to{transform:translateX(2px) rotate(4deg)}}
+.zawa{position:absolute;bottom:40px;z-index:4;font-family:var(--pop);color:#ffe9a6;font-size:14px;text-shadow:0 2px 0 #000;animation:zawa 2s infinite}
+@keyframes zawa{0%,100%{opacity:0;transform:translateY(4px)}30%,70%{opacity:1;transform:none}}
+.skip{position:absolute;right:10px;bottom:68px;z-index:5;font-size:11px;color:#f8e9c6;background:rgba(0,0,0,.4);padding:2px 10px;border-radius:999px}
+
+/* ---------- 机（操作エリア） ---------- */
+.deskarea{flex:1;position:relative;padding:14px 12px 22px;border-top:5px solid #1f1209;
+  background:repeating-linear-gradient(176deg,#7a4e2c 0 3px,#6e4527 3px 8px,#7f5330 8px 11px),#7a4e2c;box-shadow:inset 0 10px 18px rgba(0,0,0,.35)}
+.paper{background:var(--paper);border-radius:3px;padding:14px 14px 16px;position:relative;
+  box-shadow:0 2px 0 #d8c8a4,0 6px 0 -1px var(--paper-d),0 8px 20px rgba(0,0,0,.35);
+  background-image:repeating-linear-gradient(transparent 0 27px,rgba(120,90,50,.13) 27px 28px)}
+.paper .ph{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:3px;margin-bottom:8px}
+.paper .ph b{font-family:var(--mincho);font-weight:800;font-size:16px;letter-spacing:.3em}
+.paper .ph span{font-size:10px;color:var(--muted)}
+.waiting{color:#f3e2bd;text-align:center;padding:30px 0;font-size:13px;opacity:.8}
+.waiting b{display:block;font-family:var(--pop);font-size:20px;color:#ffe9a6;opacity:1;margin-bottom:4px}
+
+.seals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.seal{position:relative;display:flex;flex-direction:column;align-items:center;padding:6px 0 4px;border-radius:12px;transition:transform .1s}
+.seal:active{transform:scale(.95)}
+.seal .ring{width:108px;height:108px;border-radius:50%;display:grid;place-items:center;border:5px double currentColor;transform:rotate(-8deg);
+  font-family:var(--mincho);font-weight:800;font-size:28px;line-height:1.05;background:rgba(255,255,255,.35);box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
+.seal .ring small{display:block;font-size:11px;letter-spacing:.2em}
+.seal.g{color:var(--indigo)}.seal.d{color:var(--vermilion)}
+.seal .cap{font-size:11px;color:var(--ink);margin-top:6px;font-weight:700}
+.seal .tag{position:absolute;top:0;right:4px;font-size:10px;font-weight:900;padding:1px 7px;border-radius:3px;transform:rotate(6deg);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.tag.ok{background:#ffd65a;color:#4a3300}
+.tag.ng{background:repeating-linear-gradient(45deg,#d0381f 0 6px,#a82a14 6px 12px);color:#fff}
+
+.sticky{background:#fff1a8;padding:8px 10px;margin:-4px 4px 12px;transform:rotate(-1deg);box-shadow:0 4px 10px rgba(0,0,0,.3);font-size:12px;position:relative}
+.sticky::before{content:"";position:absolute;top:-8px;left:50%;width:60px;height:16px;margin-left:-30px;background:rgba(255,255,255,.55);transform:rotate(2deg)}
+.sticky .h{font-weight:900;font-size:11px;color:#8a5a00}
+.sticky .tx{font-family:var(--mincho);font-weight:800;font-size:14px;line-height:1.5}
+.sticky .ex{font-family:var(--hand);color:var(--vermilion);font-size:14px}
+.sticky.gray{background:#e9e4d8}
+.sticky.gray .h{color:var(--muted)}
+.sticky .st{position:absolute;right:8px;top:6px;color:var(--vermilion);border:2px solid currentColor;font-family:var(--pop);font-size:12px;padding:0 5px;transform:rotate(10deg);opacity:.85}
+
+.holding{font-family:var(--mincho);font-weight:800;font-size:16px;line-height:1.75;min-height:84px}
+.holding .k{padding:0 2px;border-radius:2px;transition:background .3s}
+.holding .k.l0{background:#cfe3c4}.holding .k.l1{background:#ffe08a}.holding .k.l2{background:#ffb39e}
+.holding .ex{font-family:var(--hand);color:var(--vermilion);display:block;transform:rotate(-1deg);margin-top:2px}
+.holding.fresh{animation:ink .35s}
+@keyframes ink{from{opacity:.2;filter:blur(2px)}}
+
+.scopeq{color:#ffe9a6;font-family:var(--pop);font-size:15px;text-align:center;margin:14px 0 8px;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.dial{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(0,0,0,.3);padding:5px;border-radius:14px}
+.dial button{border-radius:10px;padding:6px 2px 5px;color:#f3e2bd;line-height:1.2;transition:all .15s}
+.dial button .e{font-size:22px;display:block}
+.dial button b{font-size:13px;display:block}
+.dial button small{font-size:9px;opacity:.75}
+.dial button.on{background:var(--paper);color:var(--ink);box-shadow:0 3px 0 #b49b6c;transform:translateY(-2px)}
+.dial button.on.x2{background:#ffd2c4}
+
+.map{margin-top:10px;background:rgba(0,0,0,.28);border-radius:12px;padding:8px 10px}
+.mrow{display:flex;align-items:center;gap:6px;margin:2px 0}
+.mrow .ml{flex:none;width:52px;font-size:10px;color:#f3e2bd;opacity:.8;line-height:1.2}
+.icons{display:flex;flex-wrap:wrap;gap:1px}
+.icons span{font-size:17px;width:22px;text-align:center;opacity:.18;filter:grayscale(1);transition:all .3s;display:inline-block}
+.icons span.on{opacity:1;filter:none;animation:lit .4s backwards}
+.icons span.me{outline:2px solid #ffe9a6;border-radius:4px}
+@keyframes lit{from{transform:scale(1.8)}}
+.mcount{color:#f3e2bd;font-size:11px;text-align:right;margin-top:4px}
+.mcount b{font-family:var(--pop);font-size:16px;color:#ffe9a6}
+.mcount b.hot{color:#ff8a6a}
+
+.gavelbtn{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;margin-top:12px;padding:12px;border-radius:14px;
+  background:linear-gradient(#2c1a0d,#140b05);border:2px solid var(--brass);color:#ffe9a6;font-family:var(--pop);font-size:19px;
+  box-shadow:0 5px 0 #0a0603,0 8px 16px rgba(0,0,0,.4)}
+.gavelbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #0a0603}
+.gavelbtn .g{font-size:26px;display:inline-block;transform:rotate(-30deg);transition:transform .2s}
+.gavelbtn:hover .g{transform:rotate(-50deg)}
+.gavelbtn small{font-family:"Noto Sans JP";font-size:11px;font-weight:700;background:var(--brass);color:#2c1a0d;border-radius:999px;padding:1px 8px}
+.backlink{display:block;margin:10px auto 0;color:#f3e2bd;opacity:.75;font-size:12px}
+
+.choices{display:grid;gap:8px}
+.choice{display:flex;align-items:center;gap:10px;text-align:left;background:var(--paper);border-radius:8px;padding:10px 12px;box-shadow:0 3px 0 #b49b6c;border-left:6px solid var(--brass)}
+.choice:active{transform:translateY(2px);box-shadow:0 1px 0 #b49b6c}
+.choice .ic{font-size:24px}
+.choice b{display:block;font-size:14px}
+.choice .d{font-family:var(--hand);color:var(--vermilion);font-size:14px}
+.choice .c{margin-left:auto;font-family:var(--pop);font-size:15px;color:var(--vermilion);white-space:nowrap}
+.choice.danger{border-left-color:var(--vermilion);background:#fff0ea}
+
+/* ---------- オーバーレイ ---------- */
+.ov{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(420px,100%);z-index:60;display:grid;place-items:center;overflow:hidden}
+.ov.dim{background:rgba(10,6,3,.7);animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+
+/* 判例発動カットイン */
+.cut{position:absolute;left:-20%;right:-20%;top:34%;height:150px;transform:rotate(-8deg);background:linear-gradient(90deg,#8b1f12,#d0381f 40%,#d6a93a);
+  box-shadow:0 0 0 6px #1a0f07,0 0 0 9px var(--brass);animation:cutin .45s cubic-bezier(.2,1.2,.4,1)}
+@keyframes cutin{from{transform:rotate(-8deg) translateX(110%)}}
+.cut::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 2px,transparent 2px 14px);animation:speed .3s linear infinite}
+@keyframes speed{to{background-position:-28px 0}}
+.cut .big{position:absolute;left:24%;top:16px;font-family:var(--pop);font-size:46px;color:#fff;text-shadow:4px 4px 0 #1a0f07;letter-spacing:.04em;animation:slam .5s .15s backwards}
+@keyframes slam{from{transform:scale(2.4);opacity:0}}
+.cut .sub{position:absolute;left:24%;top:88px;color:#ffe9a6;font-weight:900;font-size:13px}
+.cutcard{position:absolute;left:24px;right:24px;top:58%;background:var(--paper);padding:12px 14px;border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,.5);transform:rotate(2deg);animation:cardin .5s .35s cubic-bezier(.2,1.3,.4,1) backwards}
+@keyframes cardin{from{transform:translateY(80px) rotate(12deg);opacity:0}}
+.cutcard .h{font-size:10px;color:var(--muted)}
+.cutcard .tx{font-family:var(--mincho);font-weight:800;font-size:15px}
+.cutcard .by{font-family:var(--hand);color:var(--vermilion);font-size:13px;text-align:right}
+.taphint{position:absolute;bottom:26px;left:0;right:0;text-align:center;color:#f3e2bd;font-size:11px;opacity:.7}
+.cut.gray{background:linear-gradient(90deg,#3a3f46,#6b737d);box-shadow:0 0 0 6px #1a0f07,0 0 0 9px #9aa3ad}
+
+/* 木槌とハンコ */
+.biggavel{font-size:120px;transform-origin:85% 85%;animation:swing .42s cubic-bezier(.6,0,.9,.4) forwards;filter:drop-shadow(0 10px 10px rgba(0,0,0,.5))}
+@keyframes swing{from{transform:rotate(-70deg) translate(-10px,-30px)}to{transform:rotate(8deg)}}
+.don{position:absolute;font-family:var(--pop);font-size:56px;color:#ffe9a6;text-shadow:4px 4px 0 var(--vermilion);animation:don .5s backwards;top:24%}
+@keyframes don{from{transform:scale(.3);opacity:0}60%{transform:scale(1.2)}}
+.hanko{width:220px;height:220px;border-radius:50%;border:10px double var(--vermilion);color:var(--vermilion);display:grid;place-items:center;
+  font-family:var(--mincho);font-weight:800;font-size:58px;line-height:1;background:rgba(255,250,240,.93);transform:rotate(-14deg);
+  animation:hanko .32s cubic-bezier(.2,1.7,.4,1) backwards;text-align:center;
+  -webkit-mask:radial-gradient(circle at 30% 70%,transparent 3px,#000 4px) 0 0/17px 19px,linear-gradient(#000,#000);}
+.hanko small{display:block;font-size:17px;letter-spacing:.3em;margin-top:6px}
+.hanko.g{color:var(--indigo);border-color:var(--indigo)}
+@keyframes hanko{from{transform:scale(3) rotate(-14deg);opacity:0}}
+
+/* 号外 */
+.extra{width:calc(100% - 32px);background:#f8f3e4;padding:14px 16px 16px;transform:rotate(-2deg);box-shadow:0 16px 40px rgba(0,0,0,.6);animation:spin .6s cubic-bezier(.2,1.2,.4,1)}
+@keyframes spin{from{transform:rotate(-380deg) scale(.1)}}
+.extra .mast{display:flex;align-items:stretch;gap:10px;border-bottom:3px double var(--ink);padding-bottom:6px}
+.extra .gou{writing-mode:vertical-rl;background:var(--vermilion);color:#fff;font-family:var(--pop);font-size:24px;padding:6px 4px;letter-spacing:.1em}
+.extra .hl{font-family:var(--pop);font-size:22px;line-height:1.3;flex:1}
+.extra .meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+.extra .photo{display:flex;gap:12px;align-items:center;margin:10px 0}
+.halftone{flex:none;width:78px;height:78px;border-radius:4px;display:grid;place-items:center;font-size:48px;filter:grayscale(1) contrast(1.2);
+  background:radial-gradient(#0002 1.2px,transparent 1.5px) 0 0/5px 5px,#ddd5c0}
+.extra .body{font-size:12px;line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chips span{font-size:11px;font-weight:700;border-radius:4px;padding:1px 7px;background:#ece3cc}
+.chips .up{color:var(--green)}.chips .dn{color:var(--vermilion)}
+.chips .auth{background:var(--ink);color:#ffe9a6}
+.nextbtn{width:100%;margin-top:12px;padding:11px;border-radius:10px;background:var(--ink);color:#ffe9a6;font-family:var(--pop);font-size:16px}
+
+/* 判例集（本） */
+.book{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(420px,100%);z-index:70;background:rgba(10,6,3,.6);display:flex;align-items:flex-end;animation:fade .2s}
+.book-in{width:100%;max-height:86%;overflow:auto;background:var(--paper);border-radius:18px 18px 0 0;animation:up .3s cubic-bezier(.2,1.1,.4,1)}
+@keyframes up{from{transform:translateY(100%)}}
+.cover{background:linear-gradient(135deg,#7d1b10,#4a0f08);color:#f8dc93;padding:16px 18px 14px;position:sticky;top:0;border-bottom:4px solid var(--brass)}
+.cover .t{font-family:var(--mincho);font-weight:800;font-size:24px;letter-spacing:.4em}
+.cover .s{font-size:11px;opacity:.75}
+.cover::after{content:"";position:absolute;right:28px;top:0;width:14px;height:58px;background:var(--brass);clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%)}
+.pages{padding:12px 16px 24px}
+.law{padding:10px 0 12px;border-bottom:1px dashed #cdbb94;position:relative}
+.law .no{display:flex;justify-content:space-between;align-items:baseline}
+.law .no b{font-family:var(--mincho);font-weight:800;color:var(--vermilion);font-size:15px}
+.law .no span{font-size:10px;color:var(--muted)}
+.law .tx{font-family:var(--mincho);font-weight:800;font-size:15px;line-height:1.7}
+.law .ex{font-family:var(--hand);color:var(--vermilion);font-size:15px;transform:rotate(-1deg);margin-left:10px}
+.law .ex::before{content:"✎ "}
+.law.dead .tx{text-decoration:line-through 2px var(--vermilion);opacity:.5}
+.law .haishi{position:absolute;right:8px;top:24px;border:3px solid var(--vermilion);color:var(--vermilion);font-family:var(--pop);font-size:18px;padding:0 6px;transform:rotate(12deg);opacity:.85}
+.law .cites{display:inline-flex;gap:2px;margin-top:2px}
+.empty{font-family:var(--hand);color:var(--muted);text-align:center;padding:30px 10px;font-size:15px}
+
+/* ---------- タイトル ---------- */
+.title{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;color:#f3e6c4;position:relative;
+  background:radial-gradient(ellipse at 50% 35%,rgba(255,200,120,.22),transparent 60%),repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 2px,transparent 2px 70px),linear-gradient(#4a2c17,#1a0f07)}
+.title .emb{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;font-size:58px;background:radial-gradient(circle at 35% 30%,#ffe9a6,var(--brass) 55%,var(--brass-d));box-shadow:0 0 0 6px #1a0f07,0 0 0 9px var(--brass),0 0 50px rgba(214,169,58,.45);animation:float 3s infinite ease-in-out}
+@keyframes float{50%{transform:translateY(-6px)}}
+.title h1{font-family:var(--pop);font-weight:400;font-size:48px;line-height:1.05;margin:26px 0 6px;color:#ffe9a6;text-shadow:0 4px 0 #8b1f12,0 8px 20px rgba(0,0,0,.6);letter-spacing:.04em}
+.title .ruby{font-size:11px;letter-spacing:.5em;opacity:.6}
+.title .catch{font-family:var(--mincho);font-weight:800;font-size:16px;margin:14px 0 30px;background:var(--paper);color:var(--ink);padding:6px 14px;transform:rotate(-1.5deg);box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.title .catch em{font-style:normal;color:var(--vermilion)}
+.tbtn{width:100%;max-width:280px;margin:5px 0;padding:13px;border-radius:12px;font-family:var(--pop);font-size:18px}
+.tbtn.main{background:linear-gradient(#e8432a,#a82a14);color:#fff;box-shadow:0 5px 0 #5e130a}
+.tbtn.sub{background:rgba(255,255,255,.08);border:1px solid rgba(214,169,58,.5);color:#ffe9a6;font-size:15px}
+.tbtn small{font-family:"Noto Sans JP";font-size:10px;opacity:.75;display:block;font-weight:400}
+.flying{position:absolute;font-size:22px;opacity:.25;animation:drift 9s linear infinite}
+@keyframes drift{from{transform:translateY(-40px) rotate(0)}to{transform:translateY(900px) rotate(360deg)}}
+
+/* ---------- 結果 ---------- */
+.res{flex:1;padding:16px 12px 30px;background:repeating-linear-gradient(176deg,#7a4e2c 0 3px,#6e4527 3px 8px),#7a4e2c}
+.np{background:#f8f3e4;padding:14px 14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.np-mast{display:flex;align-items:center;gap:10px;border-bottom:5px double var(--ink);padding-bottom:6px}
+.np-mast .em{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-size:22px}
+.np-mast .t{font-family:var(--mincho);font-weight:800;font-size:30px;letter-spacing:.12em;line-height:1}
+.np-mast .s{font-size:9px;color:var(--muted)}
+.np-mast .r{margin-left:auto;text-align:right;font-size:9px;color:var(--muted)}
+.hero{display:flex;gap:12px;align-items:center;margin:14px 0 8px}
+.hero .halftone{width:96px;height:96px;font-size:62px;filter:none;background:radial-gradient(#0003 1.3px,transparent 1.6px) 0 0/5px 5px,#e6dcc2}
+.hero .l{font-size:10px;color:var(--muted);letter-spacing:.1em}
+.hero .n{font-family:var(--pop);font-size:30px;line-height:1.15}
+.medal{display:flex;gap:12px;align-items:center;background:var(--ink);color:#f3e6c4;border-radius:10px;padding:10px 12px;margin:10px 0;position:relative;overflow:hidden}
+.medal::after{content:"";position:absolute;top:0;bottom:0;width:40px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);animation:shine 2.5s infinite}
+@keyframes shine{from{left:-60px}to{left:110%}}
+.medal .m{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:28px;background:radial-gradient(circle at 35% 30%,#ffe9a6,var(--brass) 55%,var(--brass-d))}
+.medal .k{font-size:10px;opacity:.65}
+.medal .v{font-family:var(--pop);font-size:19px;color:#ffe9a6;line-height:1.25}
+.medal .d{font-size:11px;opacity:.85}
+.medal .st{margin-left:auto;color:var(--brass);font-size:12px;white-space:nowrap;align-self:flex-start}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;border-top:1px solid var(--ink);padding-top:8px}
+.cols .main{font-family:var(--pop);font-size:19px;line-height:1.35}
+.cols .side{border-left:1px solid #cdbb94;padding-left:10px;font-family:var(--mincho);font-weight:800;font-size:13px;line-height:1.5}
+.cols .side div+div{border-top:1px solid #cdbb94;margin-top:6px;padding-top:6px}
+.voice{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:12px}
+.voice .q{background:#ece3cc;border-radius:12px;padding:6px 10px;position:relative}
+.sec{font-family:var(--mincho);font-weight:800;font-size:13px;border-bottom:1px solid var(--ink);margin:16px 0 8px;display:flex;justify-content:space-between}
+.clip{display:flex;gap:10px;align-items:flex-start;background:#fffdf5;border:1px solid #e0d4b6;padding:8px 10px;margin-bottom:6px;transform:rotate(-.4deg)}
+.clip:nth-child(even){transform:rotate(.5deg)}
+.clip .rk{flex:none;font-family:var(--pop);font-size:22px;color:var(--vermilion);line-height:1}
+.clip .tx{font-family:var(--mincho);font-weight:800;font-size:14px;line-height:1.55}
+.clip .ex{font-family:var(--hand);color:var(--vermilion);font-size:13px}
+.clip .ci{font-size:10px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}
+.stats div{border:1px solid #cdbb94;padding:6px 0;font-size:10px;color:var(--muted)}
+.stats b{display:block;font-family:var(--pop);font-size:22px;color:var(--ink);line-height:1.2}
+.cert{margin-top:14px;text-align:center;border:3px double var(--brass-d);padding:10px;background:#fffbe9}
+.cert .k{font-size:10px;color:var(--muted);letter-spacing:.3em}
+.cert .v{font-family:var(--mincho);font-weight:800;font-size:22px}
+.sharecard{margin-top:16px;aspect-ratio:1200/630;border-radius:10px;overflow:hidden;position:relative;color:#f3e6c4;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;
+  background:radial-gradient(ellipse at 80% 20%,rgba(214,169,58,.35),transparent 50%),linear-gradient(135deg,#2a170b,#4a2c17);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.sharecard .l{font-size:10px;opacity:.7}
+.sharecard .law{font-family:var(--mincho);font-weight:800;font-size:13px;line-height:1.5;background:var(--paper);color:var(--ink);padding:6px 8px;transform:rotate(-1deg);border:0}
+.sharecard .c{font-family:var(--pop);font-size:22px;color:#ffe9a6}
+.sharecard .tg{position:absolute;right:12px;bottom:10px;font-size:10px;opacity:.7}
+.sharecard .em{position:absolute;right:14px;top:10px;font-size:40px}
+.acts{display:grid;gap:8px;margin-top:12px}
+.xbtn{background:#000;color:#fff;border-radius:12px;padding:13px;font-weight:900;font-size:15px;box-shadow:0 4px 0 #333}
+.acts .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acts .row button{border-radius:12px;padding:11px;font-weight:900;background:var(--paper);box-shadow:0 4px 0 #b49b6c}
+.acts .row button.again{background:linear-gradient(#e8432a,#a82a14);color:#fff;box-shadow:0 4px 0 #5e130a;font-family:var(--pop);font-weight:400}
+.album{color:#f3e2bd;text-align:center;font-size:12px;margin-top:8px}
+.album b{color:#ffe9a6}
+</style>
+</head>
+<body>
+<div class="mocknav">
+  <span>UIモック v2：</span>
+  <button id="nav-title">タイトル</button>
+  <button id="nav-court">法廷（遊べる）</button>
+  <button id="nav-result">結果画面</button>
+</div>
+<div class="phone" id="app"></div>
+
+<script>
+// ================= オントロジー =================
+const NODES = {
+  anyone:{label:'あらゆる者',lv:2}, anything:{label:'あらゆる物',lv:2},
+  animal:{label:'動物',lv:1,parent:'anyone'}, human:{label:'人間',lv:1,parent:'anyone'}, org:{label:'組織',lv:1,parent:'anyone'}, machine:{label:'機械',lv:1,parent:'anyone'},
+  private:{label:'私物',lv:1,parent:'anything'}, food:{label:'食べ物',lv:1,parent:'anything'}, public:{label:'公共物',lv:1,parent:'anything'}, concept:{label:'概念',lv:1,parent:'anything'},
+};
+const LEAVES = {
+  animal:[['cat','猫','🐈'],['dog','犬','🐕'],['crow','カラス','🐦'],['pigeon','ハト','🕊️'],['goldfish','金魚','🐠']],
+  human:[['child','子ども','🧒'],['elder','老人','👴'],['worker','会社員','👔'],['politician','政治家','🎩']],
+  org:[['company','会社','🏢'],['town','町内会','🏘️'],['gov','政府','🎌']],
+  machine:[['robot','ロボット掃除機','🤖'],['vending','自販機','🥤'],['ai','AI','🧠']],
+  private:[['keyboard','キーボード','⌨️'],['umbrella','傘','☂️'],['kotatsu','こたつ','🍊'],['phone','スマホ','📱']],
+  food:[['pudding','プリン','🍮'],['agepan','揚げパン','🥖'],['manju','お供えの饅頭','🍡'],['curry','社食のカレー','🍛'],['fish','焼き魚','🐟']],
+  public:[['bench','ベンチ','🪑'],['park','公園','🌳'],['hall','市民会館','🏟️'],['diet','国会議事堂','🏛️']],
+  concept:[['monday','月曜日','📅'],['surname','名字','🪪'],['lunch','昼休み','⏰'],['anthem','国歌','🎵'],['countryname','国名','🗺️']],
+};
+const ICON = {};
+for (const [cat, arr] of Object.entries(LEAVES)) for (const [id,label,ic] of arr){ NODES[id]={label,lv:0,parent:cat}; ICON[id]=ic; }
+const SUBJ_CATS=['animal','human','org','machine'], OBJ_CATS=['private','food','public','concept'];
+const chain = id => { const c=[id]; while(NODES[c[c.length-1]].parent) c.push(NODES[c[c.length-1]].parent); return c; };
+const L = id => NODES[id].label;
+const covers = (node, leaf) => chain(leaf).includes(node);
+
+// ================= 事件 =================
+const CASES = [
+  { id:'占有-01', title:'キーボード占拠事件', s:'cat', o:'keyboard', crowd:'P',
+    pla:{icon:'🐈', name:'猫のタマ', sub:'通訳: 近所の小学生'},
+    def:{icon:'💻', name:'飼い主・佐藤', sub:'プログラマー'},
+    lines:[['pla','にゃ。'],['pla','（通訳）「3時間前から、ここが私の寝床です。温かいので」'],['def','納期が今日なんです。'],['def','あと「jjjjjjjjjjjj」って入力されたコードが、もう本番に出ました。']] },
+  { id:'占有-02', title:'ベンチ20年事件', s:'elder', o:'bench', crowd:'S',
+    pla:{icon:'👴', name:'山田ゲン（82）', sub:'元・郵便局員'},
+    def:{icon:'🌳', name:'市の公園課', sub:'担当: 新人の木下'},
+    lines:[['pla','わしはこのベンチに20年座っとる。'],['pla','{cite}によれば、もうわしのもんじゃろ。'],['def','ベンチは市民みんなのものです。'],['def','あと山田さん、毎朝ほかの人を「わしの席じゃ」と追い払っています。']] },
+];
+const CROWD = {P:'猫派が多い', D:'被告に同情的', S:'ざわ…ざわ…'};
+
+const NEWS = {
+  '占有-01': { grant:['猫、キーボードの所有権を獲得','動物による「私物の占拠」に所有権','長時間占拠で所有権成立へ'],
+               grantSub:['飼い主はノートPCを買い直す','全国の飼い主、ソファを失う','全国の公園ベンチ、朝6時から争奪戦'],
+               deny:['猫、キーボード裁判で敗訴','動物の占拠に所有権なし','「居座り」に所有権なし'],
+               denySub:['なお猫は気にしていない模様','犬小屋は引き続き人間名義','徹夜の行列文化に終止符か'] },
+  '占有-02': { grant:['老人、ベンチの所有者に','人間が公共物を占拠すれば所有権','長時間占拠で所有権成立へ'],
+               grantSub:['市は隣に新しいベンチを設置','市民会館に寝袋の列','全国の公園ベンチ、朝6時から争奪戦'],
+               deny:['ベンチは市民のもの','公共物の占拠に所有権なし','「居座り」に所有権なし'],
+               denySub:['山田さん「明日も座る」','公園は今日もみんなのもの','徹夜の行列文化に終止符か'] },
+};
+const FUTURE = p => {
+  const S=L(p.s), O=L(p.o), lv=NODES[p.s].lv;
+  if (p.dead) return `第${p.no}号判例の廃止記念日、今年も祝日に`;
+  if (p.v==='grant'){
+    if (lv===2) return '国土の98%が「座り込み済み」に　最後の空きベンチを巡り決闘';
+    if (p.s==='animal') return '動物が私物を所有して100年　人間の持ち物はリュック1つまで';
+    if (lv===1) return `${S}による${O}の私有化100年　図書館は持ち主の許可制に`;
+    return `${S}の${O}、国の重要文化財に指定`;
+  }
+  if (lv===2) return '行列のない国、世界一せっかちな国民性に';
+  return `${S}は今日も${O}を使う。しかし持ち主ではない`;
+};
+
+// ================= 判例エンジン（モック版） =================
+const VEC = { grant:{秩序:-2,経済:1,自由:2,幸福:0}, deny:{秩序:1,経済:0,自由:-1,幸福:0} };
+const MULT = [1,1.5,2];          // 射程倍率（v1の1/2/3から下げた）
+const BONUS = [0,1,2];
+const holdingHTML = (s,o,v,ex=[]) => {
+  const k = id => `<span class="k l${NODES[id].lv}">${L(id)}</span>`;
+  const S2 = NODES[s].lv===2 ? 'その者' : L(s);
+  const body = v==='grant' ? `${k(s)}が${k(o)}を長時間占拠したときは、${S2}はその所有権を得る。`
+                           : `${k(s)}がいかに長く${k(o)}を占拠しても、所有権は生じない。`;
+  return body + ex.map(e=>`<span class="ex">ただし、${L(e)}の場合を除く。</span>`).join('');
+};
+const plain = h => h.replace(/<span class="ex">/g,'').replace(/<[^>]+>/g,'');
+const applies = (p,c) => !p.dead && covers(p.s,c.s) && covers(p.o,c.o) && !p.ex.some(e=>covers(e,c.s)||covers(e,c.o));
+const governing = c => state.precs.filter(p=>applies(p,c)).sort((a,b)=>(NODES[a.s].lv+NODES[a.o].lv)-(NODES[b.s].lv+NODES[b.o].lv)||b.no-a.no)[0];
+
+// ================= 状態 =================
+let state, ui;
+const freshUI = (screen='court') => ({screen, line:0, typed:false, dialogDone:false, cutDone:false, step:'verdict', verdict:null, scope:1, overruling:false, book:false, ov:''});
+function reset(screen='title'){
+  state = { day:1, auth:10, meters:{秩序:0,経済:0,自由:0,幸福:0}, precs:[], wins:{}, stats:{follow:0,dist:0,over:0,crowdOk:0,crowdNg:0}, last:null, react:null };
+  ui = freshUI(screen);
+}
+reset();
+const cur = () => CASES[state.day-1];
+
+// ================= 描画 =================
+const app = document.getElementById('app');
+let typer = null;
+function render(){
+  ['title','court','result'].forEach(s=>document.getElementById('nav-'+s).classList.toggle('on', ui.screen===s));
+  clearInterval(typer);
+  app.innerHTML = ui.screen==='title' ? titleScreen() : ui.screen==='court' ? courtScreen() : resultScreen();
+  if (ui.book) app.insertAdjacentHTML('beforeend', bookHTML());
+  if (ui.ov) app.insertAdjacentHTML('beforeend', ui.ov);
+  bind();
+  if (ui.screen==='court' && !ui.dialogDone) typeLine();
+}
+
+function topbar(){
+  const mt = Object.entries(state.meters).map(([k,v])=>{
+    const ic={秩序:'🛡️',経済:'💴',自由:'🗽',幸福:'🌸'}[k], w=Math.min(Math.abs(v),10)*5, r=Math.round(v);
+    return `<div class="mt ${Math.abs(v)>=7?'hot':''}" title="${k} ${r}"><span class="ic">${ic}</span><div class="bar"><div class="f ${v>=0?'p':'n'}" style="${v>=0?`left:50%;width:${w}%`:`right:50%;width:${w}%`}"></div></div></div>`;
+  }).join('');
+  return `<div class="topbar">
+    <div class="cal"><div class="h">任期</div><div class="d">${state.day}</div><div class="t">/ 10日</div></div>
+    <div class="brand"><div class="n">前例製造機</div><div class="s">最高裁判所　第一法廷</div></div>
+    <div class="coin" id="coin"><i>⚖</i><div><small>威信</small><b>${state.auth}</b></div></div>
+  </div><div class="meters">${mt}</div>`;
+}
+
+// ---------- タイトル ----------
+function titleScreen(){
+  const fly = ['📜','⚖️','🐈','🪑','📜','🔨'].map((e,i)=>`<span class="flying" style="left:${8+i*16}%;animation-delay:${-i*1.6}s">${e}</span>`).join('');
+  return `<div class="title">${fly}
+    <div class="emb">⚖️</div>
+    <h1>前例<br>製造機</h1>
+    <div class="ruby">ZENREI SEIZOUKI</div>
+    <div class="catch">あなたの判決が、<em>この国の法律</em>になる。</div>
+    <button class="tbtn main" data-act="start">任期を始める<small>全10件・約6分</small></button>
+    <button class="tbtn sub" data-act="start">本日の事件簿 <small>10月9日 — みんな同じ事件から</small></button>
+    <button class="tbtn sub" data-act="toresult">国家図鑑 1 / 40</button>
+  </div>`;
+}
+
+// ---------- 法廷 ----------
+function courtScreen(){
+  const c = cur();
+  const ln = c.lines[Math.min(ui.line, c.lines.length-1)];
+  const speaker = ui.dialogDone ? null : ln[0];
+  const p = c[speaker||'pla'];
+  const pod = side => `<div class="podium ${side} ${speaker? (speaker===side?'talk':'quiet') : ''}">
+      <div class="chara">${c[side].icon}</div>
+      <div class="desk"><span class="plate">${side==='pla'?'原告':'被告'}</span><div class="nm">${c[side].name}</div><div class="sb">${c[side].sub}</div></div></div>`;
+  const faces = ['👩','👨','🧒','🐈','👵','🧔','👧','🐕'].map(f=>`<span>${state.react==='cheer'?'👏':state.react==='boo'?'😡':f}</span>`).join('');
+  const bubble = ui.dialogDone ? '' : `<div class="sbubble ${speaker}"><div class="who">${speaker==='pla'?'原告':'被告'}・${p.name}</div><div class="txt" id="txt"></div><div class="nxt">▼ タップ</div></div>`;
+  return topbar() + `
+  <div class="stage ${ui.dialogDone?'compact':''}" data-act="advance">
+    <div class="crest">⚖️</div>
+    <div class="casetag"><div class="no">事件ファイル ${c.id}</div><div class="tt">${c.title}</div></div>
+    <button class="bookbtn ${state.precs.length?'':''}" data-act="book">📕 判例集 <span class="cnt">${state.precs.length}</span></button>
+    ${bubble}
+    ${pod('pla')}${pod('def')}
+    <div class="gallery"><div class="faces ${state.react||''}">${faces}</div></div>
+    ${ui.dialogDone && !state.react ? `<div class="zawa" style="left:40%">${CROWD[c.crowd]}</div>`:''}
+    ${!ui.dialogDone ? `<button class="skip" data-act="skip">スキップ ▶▶</button>`:''}
+  </div>
+  <div class="deskarea">${deskHTML(c)}</div>`;
+}
+
+function citeName(){ const p = state.precs.find(p=>!p.dead); return p ? `第${p.no}号判例` : 'この前の猫の判決'; }
+
+function typeLine(){
+  const c = cur(), el = document.getElementById('txt'); if (!el) return;
+  const text = c.lines[ui.line][1].replace('{cite}', '\u0001');
+  const fin = () => el.innerHTML = text.replace('\u0001', `<span class="cite">${citeName()}</span>`);
+  if (ui.typed) return fin();
+  let i = 0;
+  typer = setInterval(()=>{
+    i++; const part = text.slice(0,i);
+    el.innerHTML = part.replace('\u0001', `<span class="cite">${citeName()}</span>`);
+    if (i>=text.length){ clearInterval(typer); ui.typed=true; }
+  }, 32);
+}
+
+function advance(){
+  const c = cur();
+  if (ui.dialogDone) return;
+  if (!ui.typed){ ui.typed = true; clearInterval(typer); render(); return; }
+  if (ui.line < c.lines.length-1){ ui.line++; ui.typed=false; render(); return; }
+  finishDialog();
+}
+function finishDialog(){
+  ui.dialogDone = true;
+  const c = cur(), g = governing(c), any = state.precs.find(p=>!p.dead);
+  if (g && !ui.cutDone) showCut(g, true);
+  else if (any && c.lines.some(l=>l[1].includes('{cite}')) && !ui.cutDone) showCut(any, false);
+  else render();
+}
+function showCut(p, hit){
+  ui.cutDone = true;
+  ui.ov = `<div class="ov dim" data-act="closeov">
+    <div class="cut ${hit?'':'gray'}"><div class="big">${hit?'判例発動!!':'射程外!'}</div>
+      <div class="sub">${hit?`第${p.no}号判例が、この事件をしばります`:`第${p.no}号判例は、この事件には届かない`}</div></div>
+    <div class="cutcard"><div class="h">第${p.no}号判例（${p.day}日目・${p.caseId}）</div>
+      <div class="tx">${plain(holdingHTML(p.s,p.o,p.v,p.ex))}</div>
+      <div class="by">― あなたが下した判決</div></div>
+    <div class="taphint">タップで続ける</div></div>`;
+  render();
+}
+
+function deskHTML(c){
+  if (!ui.dialogDone) return `<div class="waiting"><b>審理中</b>当事者の主張を聞いています…<br>ステージをタップで進む</div>`;
+  const g = governing(c), any = state.precs.find(p=>!p.dead);
+  let note = '';
+  if (g) note = `<div class="sticky"><div class="h">⚖ この事件をしばる判例</div><div class="tx">第${g.no}号　${plain(holdingHTML(g.s,g.o,g.v))}</div>${g.ex.map(e=>`<div class="ex">ただし、${L(e)}の場合を除く。</div>`).join('')}</div>`;
+  else if (any && c.lines.some(l=>l[1].includes('{cite}'))) note = `<div class="sticky gray"><div class="st">射程外</div><div class="h">原告が持ち出した第${any.no}号判例</div><div class="tx">${plain(holdingHTML(any.s,any.o,any.v))}</div><div class="h" style="margin-top:4px">${L(any.s)}×${L(any.o)}の判例なので、この事件は縛られない。自由に裁ける。</div></div>`;
+
+  if (ui.step==='verdict'){
+    const tag = v => !g ? '' : g.v===v ? `<span class="tag ok">判例どおり</span>` : `<span class="tag ng">判例に逆らう</span>`;
+    return note + `<div class="paper"><div class="ph"><b>主文</b><span>押す印を選べ</span></div>
+      <div class="seals">
+        <button class="seal g" data-act="verdict" data-v="grant">${tag('grant')}<div class="ring"><div>認容<small>原告勝訴</small></div></div><div class="cap">${c.pla.name.replace(/（.*/,'')}の請求を認める</div></button>
+        <button class="seal d" data-act="verdict" data-v="deny">${tag('deny')}<div class="ring"><div>棄却<small>被告勝訴</small></div></div><div class="cap">請求を認めない</div></button>
+      </div></div>`;
+  }
+  if (ui.step==='follow'){
+    return note + `<div class="paper"><div class="ph"><b>判決理由</b><span>第${g.no}号判例を引用</span></div>
+      <div class="holding">第${g.no}号判例に従い、本件請求を${ui.verdict==='grant'?'認容':'棄却'}する。</div></div>
+      <button class="gavelbtn" data-act="follow"><span class="g">🔨</span>判例に従って叩く<small>威信+1</small></button>
+      <button class="backlink" data-act="back">← 印を選び直す</button>`;
+  }
+  if (ui.step==='deviate'){
+    return note + `<div class="scopeq">第${g.no}号判例に逆らう。どうする？</div>
+      <div class="choices">
+        <button class="choice" data-act="dist" data-e="${c.s}"><span class="ic">${ICON[c.s]}</span><div><b>区別する</b><div class="d">ただし、${L(c.s)}の場合を除く。</div></div><span class="c">威信−2</span></button>
+        <button class="choice" data-act="dist" data-e="${c.o}"><span class="ic">${ICON[c.o]}</span><div><b>区別する</b><div class="d">ただし、${L(c.o)}の場合を除く。</div></div><span class="c">威信−2</span></button>
+        <button class="choice danger" data-act="overrule"><span class="ic">✂️</span><div><b>判例変更</b><div style="font-size:11px">第${g.no}号を取り消して、新しい判例を作る</div></div><span class="c">威信−4</span></button>
+      </div>
+      <button class="backlink" data-act="back">← 印を選び直す</button>`;
+  }
+  if (ui.step==='scope'){
+    const sN = chain(c.s)[ui.scope], oN = chain(c.o)[ui.scope];
+    const icons = (cats, node, me) => cats.flatMap(cat=>LEAVES[cat]).map(([id],i)=>{
+      const on = covers(node,id); return `<span class="${on?'on':''} ${id===me?'me':''}" style="animation-delay:${i*25}ms" title="${L(id)}">${ICON[id]}</span>`; }).join('');
+    const nS = SUBJ_CATS.flatMap(c=>LEAVES[c]).filter(([id])=>covers(sN,id)).length;
+    const nO = OBJ_CATS.flatMap(c=>LEAVES[c]).filter(([id])=>covers(oN,id)).length;
+    const opts = [['🔍','狭く'],['🐾','ふつう'],['🌏','広く']];
+    return note + `<div class="paper"><div class="ph"><b>判決理由</b><span>→ 第${state.precs.length+1}号判例として判例集へ</span></div>
+        <div class="holding fresh">${holdingHTML(sN,oN,ui.verdict)}</div></div>
+      <div class="scopeq">この判決を、どこまで広げる？</div>
+      <div class="dial">${opts.map(([e,t],i)=>`<button data-act="scope" data-i="${i}" class="${ui.scope===i?'on':''} ${i===2?'x2':''}"><span class="e">${e}</span><b>${t}</b><small>${L(chain(c.s)[i])}×${L(chain(c.o)[i])}</small></button>`).join('')}</div>
+      <div class="map">
+        <div class="mrow"><span class="ml">しばる<br>相手</span><div class="icons">${icons(SUBJ_CATS,sN,c.s)}</div></div>
+        <div class="mrow"><span class="ml">しばる<br>物</span><div class="icons">${icons(OBJ_CATS,oN,c.o)}</div></div>
+        <div class="mcount">今後この判例にしばられる組み合わせ <b class="${ui.scope===2?'hot':''}">${nS*nO}</b> 通り</div>
+      </div>
+      <button class="gavelbtn" data-act="pronounce"><span class="g">🔨</span>木槌を叩く<small>威信+${BONUS[ui.scope]}</small></button>
+      <button class="backlink" data-act="back">← 印を選び直す</button>`;
+  }
+  return `<div class="waiting"><b>判決</b>&nbsp;</div>`;
+}
+
+// ---------- 判例集 ----------
+function bookHTML(){
+  const laws = state.precs.length ? state.precs.map(p=>`<div class="law ${p.dead?'dead':''}">
+      <div class="no"><b>第${p.no}号</b><span>${p.day}日目・${p.caseId}　引用${p.cites}回</span></div>
+      <div class="tx">${plain(holdingHTML(p.s,p.o,p.v))}</div>
+      ${p.ex.map(e=>`<div class="ex">ただし、${L(e)}の場合を除く。</div>`).join('')}
+      ${p.dead?`<div class="haishi">廃止</div>`:''}</div>`).join('')
+    : `<div class="empty">まだ一つもない。<br>あなたの最初の判決が、この国の最初の法律になる。</div>`;
+  return `<div class="book" data-act="closebook"><div class="book-in" onclick="event.stopPropagation()">
+    <div class="cover"><div class="t">判例集</div><div class="s">あなたが作った、この国の法律</div></div>
+    <div class="pages">${laws}</div></div></div>`;
+}
+
+// ================= 判決処理 =================
+function addMeters(v,mult,d){ for (const [k,x] of Object.entries(VEC[v])) if (x){ state.meters[k]+=x*mult; d[k]=(d[k]||0)+x*mult; } }
+function pronounce(kind, extra){
+  const c = cur(), g = governing(c), v = ui.verdict, d = {}; let auth = 0, lawLine = '';
+  let hl, sub;
+  if (kind==='new' || kind==='overrule'){
+    const p = {no:state.precs.length+1, s:chain(c.s)[ui.scope], o:chain(c.o)[ui.scope], v, ex:[], cites:0, day:state.day, caseId:c.id};
+    if (kind==='overrule'){ g.dead = p.no; auth -= 4; state.stats.over++; }
+    state.precs.push(p); auth += BONUS[ui.scope]; addMeters(v, MULT[ui.scope], d);
+    lawLine = `第${p.no}号判例 成立`;
+    hl = kind==='overrule' ? `第${g.no}号判例、わずか${state.day-g.day}日で変更` : NEWS[c.id][v][ui.scope];
+    sub = kind==='overrule' ? `${L(g.s)}、所有権を失う` : NEWS[c.id][v+'Sub'][ui.scope];
+  } else if (kind==='follow'){
+    g.cites++; auth += 1; state.stats.follow++; addMeters(v,1,d);
+    lawLine = `第${g.no}号判例 引用${g.cites}回目`;
+    hl = `第${g.no}号判例、また適用`; sub = `${L(c.s)}、${L(c.o)}の所有者に。隣の${L(c.o)}にも座り始める`;
+  } else {
+    g.ex.push(extra); auth -= 2; state.stats.dist++;
+    lawLine = `第${g.no}号判例に例外を追記`;
+    hl = `判例に例外「ただし${L(extra)}を除く」`; sub = `全国の${L(extra)}、静かに立ち上がる`;
+  }
+  if (v==='grant') state.wins[c.s]=(state.wins[c.s]||0)+1;
+  const side = c.crowd==='P'?'grant':c.crowd==='D'?'deny':null;
+  if (side){ if (side===v){auth+=1;state.stats.crowdOk++;state.react='cheer';} else {auth-=1;state.stats.crowdNg++;state.react='boo';} } else state.react='cheer';
+  state.auth = Math.max(0, Math.min(20, state.auth+auth));
+  state.last = {hl, sub, d, auth, lawLine, crowd: side ? (side===v?'👏 傍聴席 威信+1':'😡 傍聴席 威信−1') : '🤔 傍聴席 ±0'};
+  ui.step = 'done';
+
+  ui.ov = `<div class="ov dim"><div class="biggavel">🔨</div></div>`; render();
+  setTimeout(()=>{ app.classList.add('shake'); ui.ov = `<div class="ov dim"><div class="don">ドンッ!!</div><div class="hanko ${v==='grant'?'g':''}"><div>${v==='grant'?'認容':'棄却'}<small>判　決</small></div></div></div>`; render(); }, 420);
+  setTimeout(()=>{ app.classList.remove('shake'); }, 820);
+  setTimeout(()=>{ ui.ov = extraHTML(); render(); const coin=document.getElementById('coin'); coin&&coin.classList.add('bump'); }, 1600);
+}
+function extraHTML(){
+  const n = state.last, c = cur(), last = state.day>=CASES.length;
+  const chips = Object.entries(n.d).map(([k,v])=>`<span class="${v>0?'up':'dn'}">${k} ${v>0?'▲':'▼'}${Math.abs(v)}</span>`).join('');
+  return `<div class="ov dim"><div class="extra">
+    <div class="mast"><div class="gou">号外</div><div class="hl">${n.hl}</div></div>
+    <div class="meta"><span>前例新聞　任期${state.day}日目</span><span>${n.lawLine}</span></div>
+    <div class="photo"><div class="halftone">${c.pla.icon}</div><div class="body"><b>${n.sub}</b><br>最高裁第一法廷は本日、${c.title}について判決を言い渡した。判決は直ちに全国の法となる。</div></div>
+    <div class="chips">${chips}<span>${n.crowd}</span><span class="auth">威信 ${n.auth>=0?'+':''}${n.auth}</span></div>
+    <button class="nextbtn" data-act="${last?'toresult':'nextday'}">${last?'任期満了（モックはここまで）→':'次の事件へ →'}</button>
+  </div></div>`;
+}
+
+// ================= 結果 =================
+function demoIfEmpty(){
+  if (state.precs.length) return;
+  state.precs = [{no:1,s:'anyone',o:'anything',v:'grant',ex:['elder'],cites:4,day:1,caseId:'占有-01'},
+                 {no:2,s:'animal',o:'food',v:'grant',ex:[],cites:2,day:3,caseId:'食-05'},
+                 {no:3,s:'human',o:'concept',v:'deny',ex:[],cites:0,day:6,caseId:'命名-05',dead:4}];
+  state.meters={秩序:-9,経済:3,自由:8,幸福:2}; state.wins={cat:3,elder:1}; state.auth=12; state.day=10;
+  state.stats={follow:4,dist:1,over:1,crowdOk:3,crowdNg:2};
+}
+function resultScreen(){
+  demoIfEmpty();
+  const top = Object.entries(state.wins).sort((a,b)=>b[1]-a[1])[0];
+  const heroId = top ? top[0] : null, hero = heroId ? L(heroId) : '名もなき';
+  const TEMP={秩序:['規律','無法'],経済:['商業','貧乏'],自由:['自由','窮屈'],幸福:['ゆるふわ','どんより']};
+  const mx = Object.entries(state.meters).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+  const temp = Math.round(mx[1])===0 ? '平穏' : TEMP[mx[0]][mx[1]>0?0:1];
+  const polity = ['連邦','共和国','王国','合衆国','自治区'][(hero.length+temp.length)%5];
+  const country = `${hero}${temp}${polity}`;
+  const live = state.precs.filter(p=>!p.dead);
+  let E = ['🏘️','平凡な国','あなたは退屈な名判事でした',1];
+  if (state.auth<=0) E=['🚪','罷免','威信が尽き、法廷を追われた',1];
+  else if (state.meters.秩序<=-8) E=['🔥','国家崩壊','誰もが何かに座り込み、国会すら開けない',3];
+  else if (live.length && live.every(p=>NODES[p.s].lv===2)) E=['🌐','何でも広げる判事','あなたの判決は、いつも国じゅうに届いた',2];
+  else if (live.length && live.every(p=>NODES[p.s].lv===0)) E=['🔍','慎重すぎる判事','国は何も変わらなかった。猫だけが少し得をした',2];
+  const st = state.stats;
+  const title = st.over ? '手のひら返しの名人' : st.dist ? '例外の魔術師' : st.follow ? '前例製造機' : '普通の裁判官';
+  const ranked = [...state.precs].sort((a,b)=>b.cites-a.cites);
+  const heads = ranked.slice(0,3).map(FUTURE);
+  const voice = state.meters.秩序<=-5 ? '朝起きたら、家の前の道路が隣の人のものになっていました' : state.meters.自由>=5 ? 'なんでも自由。ただし座ったら負け' : '特に何も変わりませんね';
+  const clips = ranked.slice(0,3).map((p,i)=>`<div class="clip"><div class="rk">${i+1}</div><div>
+      <div class="tx" style="${p.dead?'text-decoration:line-through 2px var(--vermilion);opacity:.55':''}">${plain(holdingHTML(p.s,p.o,p.v))}</div>
+      ${p.ex.map(e=>`<div class="ex">✎ ただし、${L(e)}の場合を除く。</div>`).join('')}
+      <div class="ci">第${p.no}号・引用${p.cites}回${p.dead?'・のちに廃止':''}</div></div></div>`).join('');
+  const topLaw = ranked[0] ? plain(holdingHTML(ranked[0].s,ranked[0].o,ranked[0].v)) : '';
+  return topbar() + `<div class="res"><div class="np">
+    <div class="np-mast"><div class="em">⚖️</div><div><div class="t">百年後新聞</div><div class="s">建国百年記念号</div></div><div class="r">第36500号<br>朝刊</div></div>
+    <div class="hero"><div class="halftone">${heroId?ICON[heroId]:'🏳️'}</div><div><div class="l">あなたの判決が作った国</div><div class="n">${country}</div></div></div>
+    <div class="medal"><div class="m">${E[0]}</div><div><div class="k">エンディング</div><div class="v">${E[1]}</div><div class="d">${E[2]}</div></div><div class="st">${'★'.repeat(E[3])}${'☆'.repeat(5-E[3])}</div></div>
+    <div class="cols"><div class="main">${heads[0]||''}</div><div class="side">${heads.slice(1).map(h=>`<div>${h}</div>`).join('')}</div></div>
+    <div class="voice"><span style="font-size:24px">🗣️</span><div class="q">「${voice}」<br><small style="color:var(--muted)">― 国民（34）</small></div></div>
+    <div class="sec"><span>この国の奇妙な法律</span><span style="font-size:10px;color:var(--muted)">引用数順</span></div>${clips}
+    <div class="sec"><span>任期の記録</span></div>
+    <div class="stats"><div><b>${state.precs.length}</b>作った判例</div><div><b>${state.precs.reduce((a,p)=>a+p.cites,0)}</b>引用された</div><div><b>${st.dist+st.over}</b>曲げた</div></div>
+    <div class="cert"><div class="k">判事の称号</div><div class="v">「${title}」</div></div>
+  </div>
+  <div class="sharecard"><div class="em">${heroId?ICON[heroId]:'⚖️'}</div>
+    <div class="l">私の国の法律</div><div class="law">「${topLaw}」</div>
+    <div><div class="l">その結果、生まれた国</div><div class="c">${country}</div></div><div class="tg">#前例製造機</div></div>
+  <div class="acts">
+    <button class="xbtn">𝕏 でこの国を自慢する</button>
+    <div class="row"><button>🖼 画像を保存</button><button class="again" data-act="restart">もう一度</button></div>
+  </div>
+  <div class="album">国家図鑑 <b>2</b> / 40 — 新しいエンディングを発見！</div>
+  </div>`;
+}
+
+// ================= イベント =================
+function bind(){
+  app.querySelectorAll('[data-act]').forEach(el=>el.addEventListener('click', e=>{
+    e.stopPropagation();
+    const a = el.dataset.act, c = cur(), g = c && governing(c);
+    switch(a){
+      case 'start': reset('court'); break;
+      case 'restart': reset('court'); break;
+      case 'advance': return advance();
+      case 'skip': ui.line=c.lines.length-1; ui.typed=true; clearInterval(typer); return finishDialog();
+      case 'closeov': ui.ov=''; break;
+      case 'book': ui.book=true; break;
+      case 'closebook': ui.book=false; break;
+      case 'verdict': ui.verdict=el.dataset.v; ui.scope=1; ui.step = !g ? 'scope' : g.v===ui.verdict ? 'follow' : 'deviate'; break;
+      case 'back': ui.step='verdict'; ui.overruling=false; break;
+      case 'scope': ui.scope=+el.dataset.i; break;
+      case 'follow': return pronounce('follow');
+      case 'dist': return pronounce('dist', el.dataset.e);
+      case 'overrule': ui.overruling=true; ui.step='scope'; break;
+      case 'pronounce': return pronounce(ui.overruling?'overrule':'new');
+      case 'nextday': state.day++; state.react=null; ui=freshUI('court'); break;
+      case 'toresult': ui=freshUI('result'); window.scrollTo(0,0); break;
+    }
+    render();
+  }));
+}
+document.getElementById('nav-title').onclick=()=>{ reset('title'); render(); };
+document.getElementById('nav-court').onclick=()=>{ reset('court'); render(); };
+document.getElementById('nav-result').onclick=()=>{ if (ui.screen!=='result' && state.day<CASES.length) reset('result'); ui=freshUI('result'); render(); };
+render();
+</script>
+</body>
+</html>
