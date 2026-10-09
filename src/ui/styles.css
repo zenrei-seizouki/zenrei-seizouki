@@ -127,6 +127,7 @@ h1, h2, h3, p { margin: 0; }
 .party.pla { left: -3%; }
 .party.def { right: -3%; }
 .party img, .party .sil { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; mix-blend-mode: multiply; transition: opacity 0.25s, filter 0.25s, transform 0.25s; }
+.party img { -webkit-mask-image: radial-gradient(ellipse 74% 84% at 50% 64%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 74% 84% at 50% 64%, #000 62%, transparent 100%); }
 .party.quiet img, .party.quiet .sil { opacity: 0.55; filter: grayscale(1) contrast(0.9); transform: translateY(5px); }
 .party.talk img, .party.talk .sil { animation: talk 0.24s steps(2) infinite alternate; }
 @keyframes talk { to { transform: translateY(-3px) rotate(-0.8deg); } }

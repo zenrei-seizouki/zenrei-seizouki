@@ -58,7 +58,7 @@ export function StampOverlay({ grant }: { grant: boolean }) {
 
 const crowdText = (r: 'agree' | 'against' | 'split') => (r === 'agree' ? '傍聴席 拍手 威信+1' : r === 'against' ? '傍聴席 ざわめき 威信−1' : '傍聴席 ±0');
 
-export function Extra({ events, c, day, last, onNext }: { events: GameEvent[]; c: CaseDef; day: number; last: boolean; onNext: () => void }) {
+export function Extra({ events, c, day, last, dismissed, onNext }: { events: GameEvent[]; c: CaseDef; day: number; last: boolean; dismissed?: boolean; onNext: () => void }) {
   const news = events.find((e) => e.type === 'news') as Extract<GameEvent, { type: 'news' }>;
   const meter = events.find((e) => e.type === 'meterChanged') as Extract<GameEvent, { type: 'meterChanged' }>;
   const auth = events.find((e) => e.type === 'authority') as Extract<GameEvent, { type: 'authority' }>;
@@ -106,7 +106,7 @@ export function Extra({ events, c, day, last, onNext }: { events: GameEvent[]; c
             </span>
           </div>
           <button class="btn nextbtn" onClick={onNext}>
-            {last ? '任期満了 — 結果を見る' : '次の事件へ'}
+            {dismissed ? '威信が尽きた — 結果を見る' : last ? '任期満了 — 結果を見る' : '次の事件へ'}
           </button>
         </div>
       </div>

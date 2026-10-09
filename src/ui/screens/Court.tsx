@@ -82,6 +82,18 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
 
   useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
 
+  // キーボード: Space / Enter でタップ送り
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key === ' ' || e.key === 'Enter') && phase === 'dialogue' && !overlay && !book && !(e.target instanceof HTMLButtonElement)) {
+        e.preventDefault();
+        tapDialogue();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   const typed = shown >= full.length;
   const speaker = phase === 'dialogue' ? cur.who : null;
   const compact = phase !== 'dialogue';
@@ -193,7 +205,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
     <div class="slip">
       <div class="h">この事件をしばる判例</div>
       <div class="tx">
-        第{gov.no}号
+        第{gov.no}号{'　'}
         <PrecedentText p={gov} />
       </div>
     </div>
@@ -386,7 +398,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
       {overlay === 'cutin' && cutKind && <CutIn p={cutKind.p} hit={cutKind.hit} onClose={() => setOverlay(null)} />}
       {overlay === 'gavel' && <GavelOverlay />}
       {overlay === 'stamp' && <StampOverlay grant={verdict === 'grant'} />}
-      {overlay === 'extra' && pending && <Extra events={pending.events} c={c} day={game.day} last={lastDay || pending.events.some((e) => e.type === 'ended')} onNext={afterExtra} />}
+      {overlay === 'extra' && pending && <Extra events={pending.events} c={c} day={game.day} last={lastDay || pending.events.some((e) => e.type === 'ended')} dismissed={pending.state.authority <= 0} onNext={afterExtra} />}
       {overlay === 'weekly' && pending && <Weekly state={pending.state} onClose={() => proceed(pending)} />}
       {book && (
         <div class="book" onClick={() => setBook(false)}>

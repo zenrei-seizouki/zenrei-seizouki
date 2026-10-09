@@ -72,7 +72,8 @@ export function TitleArt() {
   return (
     <svg viewBox="0 0 160 110" class="sil" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <rect width="160" height="110" fill="#e7dabb" />
-      <circle cx="104" cy="40" r="26" fill="#c8321b" />
+      <g fill="none" stroke="#c8321b"><circle cx="104" cy="38" r="26" stroke-width="5" /><circle cx="104" cy="38" r="20" stroke-width="1.5" /></g>
+      <text x="104" y="49" text-anchor="middle" font-size="30" font-weight="800" fill="#c8321b" font-family="'Shippori Mincho B1', serif">法</text>
       {[16, 52, 108, 144].map((x) => (
         <rect key={x} x={x - 3} y="0" width="6" height="74" fill="#231a12" opacity="0.18" />
       ))}
