@@ -1,5 +1,6 @@
 import { OPENING_IDS } from '../data/cases';
 import { METER_IDS, TERM, type GameState, type MeterId } from './types';
+import { drift } from './meters';
 import { makeRng } from './rng';
 import { drawNextCase } from './selector';
 
@@ -55,6 +56,7 @@ export function advance(s: GameState): GameState {
     return { ...structuredClone(s), finished: true, currentCase: null };
   }
   const n: GameState = { ...structuredClone(s), day: s.day + 1 };
+  n.meters = drift(n.meters);
   return drawInto(n);
 }
 

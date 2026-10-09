@@ -29,3 +29,20 @@ export function addMeters(
   }
   return next;
 }
+
+/** メーターがこの絶対値以上だと「国が荒れている」: 毎回 威信−1（最大−2） */
+export const STRAIN_AT = 7;
+/** 1日ごとにメーターが0へ戻る量（国は少しずつ落ち着く） */
+export const DRIFT_PER_DAY = 0.4;
+
+export function drift(meters: Record<MeterId, number>): Record<MeterId, number> {
+  const next = { ...meters };
+  for (const m of METER_IDS) {
+    const v = next[m];
+    next[m] = Math.round((v > 0 ? Math.max(0, v - DRIFT_PER_DAY) : Math.min(0, v + DRIFT_PER_DAY)) * 10) / 10;
+  }
+  return next;
+}
+
+/** N日ごとに威信が1すり減る（広い判例で稼がないとジリ貧になる） */
+export const UPKEEP_EVERY = 2;

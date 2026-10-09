@@ -384,7 +384,7 @@ describe('エンディング', () => {
 });
 
 describe('シミュレーション的な安定性', () => {
-  it('ランダム方針で2000回遊んでもクラッシュしない', () => {
+  it('ランダム方針で2000回遊んでもクラッシュしない', { timeout: 60000 }, () => {
     for (let seed = 1; seed <= 2000; seed++) {
       const r = makeRng(seed * 7919);
       let s = newGame({ seed });

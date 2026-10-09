@@ -2,9 +2,9 @@ import { subjectCategory } from '../data/ontology';
 import { isDescendant, levelOf, nodeAtLevel } from './ontology';
 import { distinguishNews, extendNews, followNews, newPrecedentNews, overruleNews } from './newsText';
 import { findGoverning } from './precedent';
-import { SCOPE_BONUS, SCOPE_MULT, addMeters, meterVector } from './meters';
+import { SCOPE_BONUS, SCOPE_MULT, STRAIN_AT, UPKEEP_EVERY, addMeters, meterVector } from './meters';
 import { MAX_AUTHORITY } from './state';
-import { TERM, type CaseDef, type Choice, type GameEvent, type GameState, type Level, type Precedent, type RulingLog, type Verdict } from './types';
+import { METER_IDS, TERM, type CaseDef, type Choice, type GameEvent, type GameState, type Level, type Precedent, type RulingLog, type Verdict } from './types';
 
 export interface RulingResult {
   state: GameState;
@@ -176,6 +176,20 @@ export function applyRuling(prev: GameState, choice: Choice): RulingResult {
     else s.stats.crowdAgainst += 1;
   }
   events.push({ type: 'crowd', result: crowd });
+
+  // 世間の目: 毎日すり減る威信
+  if (s.day % UPKEEP_EVERY === 0) {
+    authority -= 1;
+    parts.push({ label: '日々の重圧', value: -1 });
+  }
+
+  // 国が荒れている: メーターが限界(±8)にあると、判事への風当たりが強くなる
+  const strained = METER_IDS.filter((m) => Math.abs(s.meters[m]) >= STRAIN_AT).length;
+  if (strained) {
+    const d = -Math.min(strained, 2);
+    authority += d;
+    parts.push({ label: '国が荒れている', value: d });
+  }
 
   const before = s.authority;
   s.authority = Math.max(0, Math.min(MAX_AUTHORITY, s.authority + authority));

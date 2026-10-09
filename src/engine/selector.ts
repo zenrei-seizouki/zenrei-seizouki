@@ -8,9 +8,11 @@ import { pick, weightedPick, type Rng } from './rng';
 import type { CaseDef, GameState, IssueId } from './types';
 
 /** 自動生成事件を選ぶ確率（手書き優先: 目安 手書き7〜8件 / 自動2〜3件） */
-export const GEN_PROBABILITY = 0.25;
+export const GEN_PROBABILITY = 0.28;
 /** 自動生成のうち「既存判例が当てはまる事件」にする割合 */
-export const GEN_GOVERNED_BIAS = 0.5;
+export const GEN_GOVERNED_BIAS = 0.85;
+/** 既存判例が当てはまる手書き事件の重み（DESIGN §4.1 は×2。手触りを強くするため上げた） */
+export const GOVERNED_WEIGHT = 3;
 
 const stageTier = (day: number): 1 | 2 | 3 => (day <= 3 ? 1 : day <= 7 ? 2 : 3);
 
@@ -43,7 +45,7 @@ export function drawNextCase(s: GameState, rng: Rng): CaseDef {
     return weightedPick(rng, hand, (c) => {
       let w = c.weight ?? 1;
       if (c.requires?.length) w *= 3; // 連鎖事件
-      if (findGoverning(c, active)) w *= 2; // 既存判例が適用される
+      if (findGoverning(c, active)) w *= GOVERNED_WEIGHT; // 既存判例が適用される
       return w;
     });
   }
