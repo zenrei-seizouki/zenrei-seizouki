@@ -44,9 +44,9 @@ export const ENDINGS: EndingDef[] = [
   ]),
   ...mk('beneficiary', [
     { id: 'animal-kingdom', name: '動物王国', rarity: 2, text: '法の下の平等は、種を超えた。', when: (s) => s.beneficiaries.animal >= 3 },
-    { id: 'machine-paradise', name: '機械の楽園', rarity: 2, text: '人間は、掃除機に道を譲る。', when: (s) => s.beneficiaries.machine >= 3 },
-    { id: 'corp-state', name: '企業国家', rarity: 2, text: '国の名前の末尾が「株式会社」になる日は近い。', when: (s) => s.beneficiaries.org >= 3 },
-    { id: 'human-first', name: '人間ファースト', rarity: 2, text: '至極まっとうな国。笑えるほどまっとうな国。', when: (s) => s.beneficiaries.human >= 5 },
+    { id: 'machine-paradise', name: '機械の楽園', rarity: 2, text: '人間は、掃除機に道を譲る。', when: (s) => s.beneficiaries.machine >= 2 },
+    { id: 'corp-state', name: '企業国家', rarity: 2, text: '国の名前の末尾が「株式会社」になる日は近い。', when: (s) => s.beneficiaries.org >= 2 },
+    { id: 'human-first', name: '人間ファースト', rarity: 2, text: '至極まっとうな国。笑えるほどまっとうな国。', when: (s) => s.beneficiaries.human >= 4 },
     { id: 'cat-nation', name: '猫の国', rarity: 3, text: '猫が3度勝訴した。国民はもう、猫の許可なく座れない。', when: (s) => wins(s, 'cat') >= 3 },
     { id: 'elder-nation', name: '老人の国', rarity: 3, text: 'ベンチも、こたつも、昼寝も、老人のもの。', when: (s) => wins(s, 'elder') >= 3 },
     { id: 'child-nation', name: '子どもの国', rarity: 3, text: '給食は毎日揚げパン。法律でそう決まった。', when: (s) => wins(s, 'child') >= 3 },
