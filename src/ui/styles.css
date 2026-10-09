@@ -193,6 +193,7 @@ h1, h2, h3, p { margin: 0; }
 
 .scopeq { text-align: center; font-weight: 800; font-size: 16px; letter-spacing: 0.1em; margin: 16px 0 8px; }
 .scopeq::before, .scopeq::after { content: '—'; margin: 0 8px; color: var(--red); }
+.hint { font-size: 12px; color: var(--muted); text-align: center; margin: -2px 0 10px; letter-spacing: 0.04em; }
 .holding { font-weight: 800; font-size: 16px; line-height: 1.85; min-height: 90px; }
 .holding .k { padding: 0 2px; }
 .holding .k.l1 { border-bottom: 3px double var(--ink); }
@@ -273,6 +274,13 @@ h1, h2, h3, p { margin: 0; }
 .halftone::after { content: ''; position: absolute; inset: 0; background: var(--halftone); mix-blend-mode: multiply; opacity: 0.35; pointer-events: none; }
 .extra .body { font-size: 12.5px; line-height: 1.7; }
 .extra .body b { font-size: 14px; display: block; margin-bottom: 2px; }
+.lawslip { position: relative; margin: 8px 0 2px; background: #fffdf3; border: 1.5px solid var(--ink); padding: 5px 10px 6px; transform: rotate(0.5deg); animation: cardin 0.4s 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) backwards; }
+.lawslip .h { font-size: 10.5px; font-weight: 800; color: var(--red); letter-spacing: 0.1em; }
+.lawslip .h span { color: var(--ink); background: var(--paper2); padding: 0 5px; margin-left: 4px; }
+.lawslip .tx { font-weight: 800; font-size: 13px; line-height: 1.6; }
+.lawslip .tx .ex { font-family: var(--hand); font-weight: 600; color: var(--red); display: block; transform: rotate(-0.8deg); animation: ink 0.5s 1s backwards; }
+.lawslip.dead .tx { text-decoration: line-through 2.5px var(--red); opacity: 0.6; }
+.lawslip .haishi { position: absolute; right: 8px; top: 14px; border: 3px solid var(--red); color: var(--red); font-family: var(--pop); font-size: 16px; padding: 0 6px; transform: rotate(10deg); filter: url(#kasure); animation: hanko 0.3s 0.9s cubic-bezier(0.2, 1.6, 0.4, 1) backwards; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
 .chips span { font-size: 11px; font-weight: 800; border: 1.5px solid var(--ink); padding: 0 7px; background: var(--paper); }
 .chips .dn { color: var(--red); border-color: var(--red); }

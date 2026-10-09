@@ -56,9 +56,44 @@ export function StampOverlay({ grant }: { grant: boolean }) {
   );
 }
 
+/** 判例集に起きたこと（成立 / 引用 / 手書きで例外が追記 / 取り消し線）を紙片で見せる */
+function LawSlip({ events, state }: { events: GameEvent[]; state: GameState }) {
+  const find = (no: number) => state.precedents.find((p) => p.no === no);
+  const ex = events.find((e) => e.type === 'exceptionAdded') as Extract<GameEvent, { type: 'exceptionAdded' }> | undefined;
+  const ov = events.find((e) => e.type === 'overruled') as Extract<GameEvent, { type: 'overruled' }> | undefined;
+  const cr = events.find((e) => e.type === 'precedentCreated') as Extract<GameEvent, { type: 'precedentCreated' }> | undefined;
+  const ci = events.find((e) => e.type === 'cited') as Extract<GameEvent, { type: 'cited' }> | undefined;
+  const ext = events.find((e) => e.type === 'extended') as Extract<GameEvent, { type: 'extended' }> | undefined;
+  const items: { no: number; tag: string; dead?: boolean; stamp?: string }[] = [];
+  if (ov) items.push({ no: ov.no, tag: '取り消し', dead: true, stamp: '廃止' });
+  if (cr) items.push({ no: cr.precedent.no, tag: '判例集に載る' });
+  if (ex) items.push({ no: ex.no, tag: '例外が書き足される' });
+  if (ext) items.push({ no: ext.no, tag: '射程が書き換わる' });
+  else if (ci && !ex) items.push({ no: ci.no, tag: `引用 ${ci.citations}回目` });
+  return (
+    <>
+      {items.map((it) => {
+        const p = find(it.no);
+        if (!p) return null;
+        return (
+          <div key={it.no + it.tag} class={`lawslip ${it.dead ? 'dead' : ''}`}>
+            <div class="h">
+              第{it.no}号判例　<span>{it.tag}</span>
+            </div>
+            <div class="tx">
+              <PrecedentText p={p} />
+            </div>
+            {it.stamp && <div class="haishi">{it.stamp}</div>}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 const crowdText = (r: 'agree' | 'against' | 'split') => (r === 'agree' ? '傍聴席 拍手 威信+1' : r === 'against' ? '傍聴席 ざわめき 威信−1' : '傍聴席 ±0');
 
-export function Extra({ events, c, day, last, dismissed, onNext }: { events: GameEvent[]; c: CaseDef; day: number; last: boolean; dismissed?: boolean; onNext: () => void }) {
+export function Extra({ events, c, day, last, dismissed, state, onNext }: { events: GameEvent[]; c: CaseDef; day: number; last: boolean; dismissed?: boolean; state: GameState; onNext: () => void }) {
   const news = events.find((e) => e.type === 'news') as Extract<GameEvent, { type: 'news' }>;
   const meter = events.find((e) => e.type === 'meterChanged') as Extract<GameEvent, { type: 'meterChanged' }>;
   const auth = events.find((e) => e.type === 'authority') as Extract<GameEvent, { type: 'authority' }>;
@@ -97,6 +132,7 @@ export function Extra({ events, c, day, last, dismissed, onNext }: { events: Gam
               最高裁第一法廷は本日、「{c.title}」について判決を言い渡した。判決は直ちに全国の法となる。
             </div>
           </div>
+          <LawSlip events={events} state={state} />
           <div class="chips">
             {chips}
             <span>{crowdText(crowd.result)}</span>

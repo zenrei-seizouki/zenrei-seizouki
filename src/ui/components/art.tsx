@@ -4,18 +4,56 @@ import { NODES } from '../../data/ontology';
 const BASE = import.meta.env.BASE_URL;
 export const artUrl = (group: 'chara' | 'scene' | 'news' | 'ending', name: string) => `${BASE}art/${group}/${name}.webp`;
 
-/** 画像が無いときの代用: 墨ベタの切り絵風シルエット（絵文字は使わない） */
-export function Silhouette({ glyph, class: cls }: { glyph?: string; class?: string }) {
+/** 画像が無いときの代用: 墨ベタの切り絵風シルエット（絵文字は使わない）。体の形は種類ごとに変える */
+type Shape = 'person' | 'box' | 'disc' | 'bird' | 'beast';
+const SHAPE: Record<string, Shape> = { vending: 'box', ai: 'box', robot: 'disc', crow: 'bird', pigeon: 'bird', goldfish: 'disc', cat: 'beast', dog: 'beast' };
+
+function Body({ shape }: { shape: Shape }) {
+  switch (shape) {
+    case 'box':
+      return (
+        <>
+          <rect x="30" y="14" width="40" height="76" rx="3" />
+          <rect x="37" y="24" width="26" height="30" fill="#e7dabb" />
+        </>
+      );
+    case 'disc':
+      return <ellipse cx="50" cy="66" rx="34" ry="22" />;
+    case 'bird':
+      return (
+        <>
+          <circle cx="50" cy="34" r="16" />
+          <path d="M66 32 L86 38 L66 42 Z" />
+          <path d="M18 100 C18 66 32 56 50 56 C68 56 82 66 82 100 Z" />
+        </>
+      );
+    case 'beast':
+      return (
+        <>
+          <path d="M30 30 L34 8 L46 24 Z M54 24 L66 8 L70 30 Z" />
+          <circle cx="50" cy="38" r="20" />
+          <path d="M16 100 C16 70 30 62 50 62 C70 62 84 70 84 100 Z" />
+        </>
+      );
+    default:
+      return (
+        <>
+          <circle cx="50" cy="38" r="19" />
+          <path d="M14 100 C14 70 30 62 50 62 C70 62 86 70 86 100 Z" />
+        </>
+      );
+  }
+}
+
+export function Silhouette({ glyph, class: cls, art }: { glyph?: string; class?: string; art?: string }) {
+  const shape = (art && SHAPE[art]) || 'person';
   return (
     <svg class={`sil ${cls ?? ''}`} viewBox="0 0 100 100" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-      <rect width="100" height="100" fill="#e7dabb" />
       <g transform="translate(2.5 1.5)" fill="#c8321b" opacity="0.8">
-        <circle cx="50" cy="38" r="19" />
-        <path d="M14 100 C14 70 30 62 50 62 C70 62 86 70 86 100 Z" />
+        <Body shape={shape} />
       </g>
       <g fill="#231a12">
-        <circle cx="50" cy="38" r="19" />
-        <path d="M14 100 C14 70 30 62 50 62 C70 62 86 70 86 100 Z" />
+        <Body shape={shape} />
       </g>
       {glyph && (
         <text x="50" y="92" textAnchor="middle" fontSize="20" fontWeight="800" fill="#f3ead3" fontFamily="'Shippori Mincho B1', serif">
@@ -31,8 +69,8 @@ const ROLE_GLYPH: Record<string, string> = { owner: '主', clerk: '役', father:
 
 export function Portrait({ name, group = 'chara', glyphFor, alt = '' }: { name: string; group?: 'chara' | 'scene' | 'news' | 'ending'; glyphFor?: string; alt?: string }) {
   const [failed, setFailed] = useState(false);
-  if (failed) return <Silhouette glyph={glyphFor ? NODES[glyphFor]?.glyph : (ROLE_GLYPH[name] ?? NODES[name]?.glyph)} />;
-  return <img src={artUrl(group, name)} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} draggable={false} />;
+  if (failed) return <Silhouette art={name} glyph={glyphFor ? NODES[glyphFor]?.glyph : (ROLE_GLYPH[name] ?? NODES[name]?.glyph)} />;
+  return <img src={artUrl(group, name)} alt={alt} decoding="async" onError={() => setFailed(true)} draggable={false} />;
 }
 
 /** 傍聴席の人影（SVG） */
@@ -64,7 +102,7 @@ export function GavelIcon({ class: cls }: { class?: string }) {
 export function NewsPhoto({ issue, fallbackArt, glyphFor }: { issue: string; fallbackArt: string; glyphFor?: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <Portrait name={fallbackArt} glyphFor={glyphFor} />;
-  return <img src={artUrl('news', `news-${issue}`)} alt="" loading="lazy" onError={() => setFailed(true)} draggable={false} />;
+  return <img src={artUrl('news', `news-${issue}`)} alt="" onError={() => setFailed(true)} draggable={false} />;
 }
 
 /** タイトルのキービジュアル（画像が無い場合の、墨と朱の切り絵）: 木槌を振り上げる判事の後ろ姿と猫 */

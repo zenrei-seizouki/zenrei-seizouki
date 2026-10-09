@@ -142,6 +142,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
   }
 
   function pronounce(choice: Choice) {
+    if (pending) return; // 二度押し防止
     const r = applyRuling(game, choice);
     setPending(r);
     setBook(false);
@@ -157,7 +158,10 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
     t(() => setOverlay('extra'), 1650);
   }
 
+  const proceeded = useRef(false);
   function proceed(r: RulingResult) {
+    if (proceeded.current) return;
+    proceeded.current = true;
     const ended = r.events.some((e) => e.type === 'ended');
     const next = advance(r.state);
     setOverlay(null);
@@ -296,6 +300,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
         </div>
       </div>
       <div class="scopeq">この判決を、どこまで広げる？</div>
+      <p class="hint">広いほど威信は稼げる。ただし、あとで自分の判例にしばられる。</p>
       <div class="dial">
         {([0, 1, 2] as Level[]).map((l) => {
           const disabled = mode === 'extend' && !opts.extendLevels.includes(l);
@@ -398,7 +403,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
       {overlay === 'cutin' && cutKind && <CutIn p={cutKind.p} hit={cutKind.hit} onClose={() => setOverlay(null)} />}
       {overlay === 'gavel' && <GavelOverlay />}
       {overlay === 'stamp' && <StampOverlay grant={verdict === 'grant'} />}
-      {overlay === 'extra' && pending && <Extra events={pending.events} c={c} day={game.day} last={lastDay || pending.events.some((e) => e.type === 'ended')} dismissed={pending.state.authority <= 0} onNext={afterExtra} />}
+      {overlay === 'extra' && pending && <Extra events={pending.events} c={c} day={game.day} last={lastDay || pending.events.some((e) => e.type === 'ended')} dismissed={pending.state.authority <= 0} state={pending.state} onNext={afterExtra} />}
       {overlay === 'weekly' && pending && <Weekly state={pending.state} onClose={() => proceed(pending)} />}
       {book && (
         <div class="book" onClick={() => setBook(false)}>
