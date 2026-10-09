@@ -8,7 +8,7 @@ import { applyRuling, optionsFor, type RulingResult } from '../../engine/ruling'
 import { advance } from '../../engine/state';
 import type { Choice, GameState, Level, Precedent, Verdict } from '../../engine/types';
 import { TERM } from '../../engine/types';
-import { Gallery, GavelIcon, Portrait } from '../components/art';
+import { CourtBg, Gallery, GavelIcon, Portrait } from '../components/art';
 import { CutIn, Extra, GavelOverlay, StampOverlay, Weekly } from '../components/overlays';
 import { BookPaper, GlyphMap, Header, Holding, PrecedentText } from '../components/parts';
 
@@ -334,7 +334,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
       <div class="stagewrap">
         <div class={`stage ${compact ? 'compact' : ''}`} onClick={tapDialogue}>
           <div class="wall" />
-          <div class="floor" />
+          <CourtBg />
           <div class="plaque">法</div>
           <div class="casetag">
             <div class="no">事件簿　{c.generated ? '臨時' : c.id.replace(/^[a-z]+-/, '第') + '号'}</div>

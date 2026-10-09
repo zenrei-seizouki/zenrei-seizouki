@@ -141,6 +141,15 @@ export function Extra({ events, c, day, last, dismissed, state, onNext }: { even
               {auth.delta}
             </span>
           </div>
+          <div class="parts">
+            威信の内訳：
+            {auth.parts.map((p, i) => (
+              <span key={i}>
+                {p.label} {p.value > 0 ? '+' : '−'}
+                {Math.abs(p.value)}
+              </span>
+            ))}
+          </div>
           <button class="btn nextbtn" onClick={onNext}>
             {dismissed ? '威信が尽きた — 結果を見る' : last ? '任期満了 — 結果を見る' : '次の事件へ'}
           </button>

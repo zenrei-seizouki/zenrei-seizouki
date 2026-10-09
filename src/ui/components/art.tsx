@@ -141,3 +141,10 @@ export function TitleArt() {
     </svg>
   );
 }
+
+/** 法廷の背景画（public/art/scene/court.webp）。無ければ何も描かない（CSSの壁だけ） */
+export function CourtBg() {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return <img class="bgimg" src={artUrl('scene', 'court')} alt="" onError={() => setFailed(true)} draggable={false} />;
+}
