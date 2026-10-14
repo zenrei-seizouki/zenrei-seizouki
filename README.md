@@ -61,7 +61,11 @@ scripts/gen-all.sh 2                         # scripts/art-list.tsv の未生成
 node scripts/optimize-art.mjs                # art-src/*.png → public/art/*/*.webp（≤512px, ≤100KB）
 ```
 
-画像が無い当事者は、墨ベタの切り絵風シルエット（SVG）で代用される（絵文字は使わない）。使用量上限に当たったら `gen-all.sh` は途中で止まるので、時間を置いて再実行すれば続きから生成される。
+生成済み（`public/art/`、計45枚）: 立ち絵25（主体の葉15＋被告役10）／場面2（`scene/title`・`scene/court`）／号外の写真6（争点ごと `news/news-<争点>`）／★エンディング挿絵12（`ending/end-<id>`）。
+画像が無い当事者は、墨ベタの切り絵風シルエット（SVG）で代用される（絵文字は使わない）。使用量上限に当たったら `gen-all.sh` は途中で止まるので、時間を置いて再実行すれば続きから生成される（同時数は 2〜3 本に抑えること）。
+画風が揃っているかの確認用に `node scripts/contact.mjs <出力.png> <name>...` でコンタクトシートを作れる（結果は `docs/art-contact/`）。
+
+`docs/screenshots/` に画面のスクショ（スマホ幅375px・PC 1280px）、`docs/sim-result.txt` に `npm run sim` の出力を置いている。
 
 ## 公開（デプロイ手順）
 
