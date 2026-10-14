@@ -1,5 +1,6 @@
 import { ISSUES } from '../../data/issues';
 import { countryName, peopleVoice, topPrecedents } from '../../engine/endings';
+import { moodFor } from '../../engine/mood';
 import { label } from '../../engine/ontology';
 import type { GameEvent, GameState, Precedent, CaseDef, MeterId } from '../../engine/types';
 import { METER_IDS, TERM } from '../../engine/types';
@@ -64,10 +65,10 @@ function LawSlip({ events, state }: { events: GameEvent[]; state: GameState }) {
   const cr = events.find((e) => e.type === 'precedentCreated') as Extract<GameEvent, { type: 'precedentCreated' }> | undefined;
   const ci = events.find((e) => e.type === 'cited') as Extract<GameEvent, { type: 'cited' }> | undefined;
   const ext = events.find((e) => e.type === 'extended') as Extract<GameEvent, { type: 'extended' }> | undefined;
-  const items: { no: number; tag: string; dead?: boolean; stamp?: string }[] = [];
+  const items: { no: number; tag: string; dead?: boolean; stamp?: string; fresh?: number }[] = [];
   if (ov) items.push({ no: ov.no, tag: '取り消し', dead: true, stamp: '廃止' });
   if (cr) items.push({ no: cr.precedent.no, tag: '判例集に載る' });
-  if (ex) items.push({ no: ex.no, tag: '例外が書き足される' });
+  if (ex) items.push({ no: ex.no, tag: 'ただし書きが書き足される', fresh: 1 });
   if (ext) items.push({ no: ext.no, tag: '射程が書き換わる' });
   else if (ci && !ex) items.push({ no: ci.no, tag: `引用 ${ci.citations}回目` });
   return (
@@ -81,7 +82,7 @@ function LawSlip({ events, state }: { events: GameEvent[]; state: GameState }) {
               第{it.no}号判例　<span>{it.tag}</span>
             </div>
             <div class="tx">
-              <PrecedentText p={p} />
+              <PrecedentText p={p} fresh={it.fresh} />
             </div>
             {it.stamp && <div class="haishi">{it.stamp}</div>}
           </div>
@@ -91,26 +92,19 @@ function LawSlip({ events, state }: { events: GameEvent[]; state: GameState }) {
   );
 }
 
-const crowdText = (r: 'agree' | 'against' | 'split') => (r === 'agree' ? '傍聴席 拍手 威信+1' : r === 'against' ? '傍聴席 ざわめき 威信−1' : '傍聴席 ±0');
+const crowdText = (r: 'agree' | 'against' | 'split', value = 0) =>
+  r === 'agree' ? '傍聴席 拍手 威信+1' : r === 'against' ? `傍聴席 ざわめき 威信−${Math.abs(value)}` : '傍聴席 ±0';
 
 export function Extra({ events, c, day, last, dismissed, state, onNext }: { events: GameEvent[]; c: CaseDef; day: number; last: boolean; dismissed?: boolean; state: GameState; onNext: () => void }) {
   const news = events.find((e) => e.type === 'news') as Extract<GameEvent, { type: 'news' }>;
-  const meter = events.find((e) => e.type === 'meterChanged') as Extract<GameEvent, { type: 'meterChanged' }>;
   const auth = events.find((e) => e.type === 'authority') as Extract<GameEvent, { type: 'authority' }>;
   const crowd = events.find((e) => e.type === 'crowd') as Extract<GameEvent, { type: 'crowd' }>;
   const created = events.find((e) => e.type === 'precedentCreated') as Extract<GameEvent, { type: 'precedentCreated' }> | undefined;
   const cited = events.find((e) => e.type === 'cited') as Extract<GameEvent, { type: 'cited' }> | undefined;
   const exc = events.find((e) => e.type === 'exceptionAdded') as Extract<GameEvent, { type: 'exceptionAdded' }> | undefined;
-  const lawLine = created ? `第${created.precedent.no}号判例 成立` : exc ? `第${exc.no}号判例に例外を追記` : cited ? `第${cited.no}号判例 引用${cited.citations}回目` : '';
-  const chips = METER_IDS.filter((m) => meter.deltas[m]).map((m: MeterId) => {
-    const d = meter.deltas[m] as number;
-    return (
-      <span key={m} class={d < 0 ? 'dn' : ''}>
-        {m} {d > 0 ? '▲' : '▼'}
-        {Math.abs(Math.round(d * 10) / 10)}
-      </span>
-    );
-  });
+  const lawLine = created ? `第${created.precedent.no}号判例 成立` : exc ? `第${exc.no}号判例にただし書きを追記` : cited ? `第${cited.no}号判例 引用${cited.citations}回目` : '';
+  const crowdPart = auth.parts.find((p) => p.label.includes('傍聴席'));
+  const mood = moodFor(events, state);
   return (
     <div class="ov">
       <div class="ovbox">
@@ -133,9 +127,20 @@ export function Extra({ events, c, day, last, dismissed, state, onNext }: { even
             </div>
           </div>
           <LawSlip events={events} state={state} />
+          {mood.line && (
+            <div class="mood">
+              <b>国の様子</b>
+              <span>{mood.line}</span>
+            </div>
+          )}
+          {mood.warn && (
+            <div class="mood warn">
+              <b>警告</b>
+              <span>{mood.warn}。このままでは威信がすり減っていく</span>
+            </div>
+          )}
           <div class="chips">
-            {chips}
-            <span>{crowdText(crowd.result)}</span>
+            <span>{crowdText(crowd.result, crowdPart?.value)}</span>
             <span class={`auth ${auth.delta < 0 ? 'm' : ''}`}>
               威信 {auth.delta >= 0 ? '+' : ''}
               {auth.delta}
@@ -189,9 +194,9 @@ export function Weekly({ state, onClose }: { state: GameState; onClose: () => vo
           </div>
           <div class="wl">
             <b>判例集</b>　{state.precedents.length}本
-            {top && top.citations > 0 && (
+            {top && (top.exceptions.length > 0 || top.citations > 0) && (
               <>
-                　いちばん引用されているのは第{top.no}号。「<PrecedentText p={top} />」
+                　{top.exceptions.length > 0 ? `いちばんただし書きが多いのは第${top.no}号。` : `いちばん引用されているのは第${top.no}号。`}「<PrecedentText p={top} />」
               </>
             )}
           </div>

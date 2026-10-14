@@ -1,10 +1,13 @@
 import { NODES, OBJECT_CATS, SUBJECT_CATS, LEAVES_BY_CAT } from '../../data/ontology';
 import { isDescendant, label } from '../../engine/ontology';
 import { holdingParts, exceptionText } from '../../engine/text';
-import { METER_IDS, TERM, type GameState, type IssueId, type NodeId, type Precedent, type Verdict } from '../../engine/types';
+import { TERM, type GameState, type IssueId, type NodeId, type Precedent, type Verdict } from '../../engine/types';
 
-/** 判例文。射程ごとに単語の見た目を変える（葉=素 / カテゴリ=二重下線 / root=墨ベタ） */
-export function Holding({ issue, verdict, subject, object, exceptions = [], mark = true }: { issue: IssueId; verdict: Verdict; subject: NodeId; object: NodeId; exceptions?: NodeId[]; mark?: boolean }) {
+/**
+ * 判例文＝本文＋ただし書きが連結した1本の条文。射程ごとに単語の見た目を変える（葉=素 / カテゴリ=二重下線 / root=墨ベタ）。
+ * ただし書きは手書き風の朱で本文のすぐ後ろに続く。fresh=N なら、末尾N個のただし書きを「書き足される」アニメーションで出す。
+ */
+export function Holding({ issue, verdict, subject, object, exceptions = [], mark = true, fresh = 0 }: { issue: IssueId; verdict: Verdict; subject: NodeId; object: NodeId; exceptions?: NodeId[]; mark?: boolean; fresh?: number }) {
   return (
     <>
       {holdingParts(issue, verdict, subject, object).map((p, i) =>
@@ -17,7 +20,7 @@ export function Holding({ issue, verdict, subject, object, exceptions = [], mark
         ),
       )}
       {exceptions.map((e, i) => (
-        <span key={`e${i}`} class="ex">
+        <span key={`e${i}-${e}`} class={`ex ${i >= exceptions.length - fresh ? 'fresh' : ''}`}>
           {exceptionText(e)}
         </span>
       ))}
@@ -25,10 +28,11 @@ export function Holding({ issue, verdict, subject, object, exceptions = [], mark
   );
 }
 
-export function PrecedentText({ p, mark = false }: { p: Precedent; mark?: boolean }) {
-  return <Holding issue={p.issue} verdict={p.verdict} subject={p.subject} object={p.object} exceptions={p.exceptions} mark={mark} />;
+export function PrecedentText({ p, mark = false, fresh = 0 }: { p: Precedent; mark?: boolean; fresh?: number }) {
+  return <Holding issue={p.issue} verdict={p.verdict} subject={p.subject} object={p.object} exceptions={p.exceptions} mark={mark} fresh={fresh} />;
 }
 
+/** 上部バー: 第N日と威信だけ。4メーターは画面に出さない（内部値はエンディング・危機事件・国名に使い、号外の「国の様子」で伝える） */
 export function Header({ state, bump }: { state: GameState; bump?: boolean }) {
   return (
     <header class="hdr">
@@ -41,23 +45,6 @@ export function Header({ state, bump }: { state: GameState; bump?: boolean }) {
           <span class="lb">威信</span>
           <span class={`num ${state.authority <= 3 ? 'low' : ''} ${bump ? 'bump' : ''}`}>{String(state.authority).padStart(2, '0')}</span>
         </div>
-      </div>
-      <div class="meters">
-        {METER_IDS.map((m) => {
-          const v = state.meters[m];
-          const w = (Math.min(Math.abs(v), 10) / 10) * 50;
-          return (
-            <div key={m} class={`mt ${v < 0 ? 'neg' : ''} ${Math.abs(v) >= 7 ? 'hot' : ''}`} title={`${m} ${v}`}>
-              <div class="row">
-                <span>{m}</span>
-                <span class="v">{v > 0 ? '+' : ''}{Math.round(v * 10) / 10}</span>
-              </div>
-              <div class="gauge">
-                <div class="fill" style={v >= 0 ? { left: '50%', width: `${w}%` } : { right: '50%', width: `${w}%` }} />
-              </div>
-            </div>
-          );
-        })}
       </div>
     </header>
   );
@@ -117,7 +104,7 @@ export function BookPaper({ state, governingNo, onClose }: { state: GameState; g
               <div class="no">
                 <b>第{p.no}号</b>
                 <span>
-                  {p.day}日目・引用{p.citations}回
+                  {p.day}日目・引用{p.citations}回{p.exceptions.length > 0 ? `・ただし書き${p.exceptions.length}` : ''}
                 </span>
               </div>
               <div class="tx">

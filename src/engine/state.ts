@@ -1,5 +1,6 @@
 import { OPENING_IDS } from '../data/cases';
 import { METER_IDS, TERM, type GameState, type MeterId } from './types';
+import { pickIssues } from './issues';
 import { drift } from './meters';
 import { makeRng } from './rng';
 import { drawNextCase } from './selector';
@@ -10,13 +11,14 @@ export const MAX_AUTHORITY = 20;
 export interface NewGameOptions {
   mode?: 'normal' | 'daily';
   seed?: number;
-  /** 1〜3日目を 占有-01 → 労働-02 → 占有-02 に固定する（初回プレイ・デイリー） */
+  /** 序盤を 占有-01 → 占有-02 に固定し、今期の争点に「占有」を必ず入れる（初回プレイ・デイリー） */
   opening?: boolean;
 }
 
 export function newGame(opts: NewGameOptions = {}): GameState {
   const seed = (opts.seed ?? Math.floor(Math.random() * 2 ** 32)) >>> 0;
   const meters = Object.fromEntries(METER_IDS.map((m) => [m, 0])) as Record<MeterId, number>;
+  const opening = !!opts.opening || opts.mode === 'daily';
   const s: GameState = {
     version: 1,
     mode: opts.mode ?? 'normal',
@@ -30,7 +32,8 @@ export function newGame(opts: NewGameOptions = {}): GameState {
     precedents: [],
     usedCaseIds: [],
     crisisUsed: [],
-    opening: opts.opening || opts.mode === 'daily' ? [...OPENING_IDS] : [],
+    issues: pickIssues(seed, opening ? ['occupy'] : []),
+    opening: opening ? [...OPENING_IDS] : [],
     currentCase: null,
     log: [],
     stats: { follows: 0, distinguishes: 0, overrules: 0, extends: 0, crowdAgree: 0, crowdAgainst: 0 },
@@ -67,7 +70,8 @@ export const serialize = (s: GameState): string => JSON.stringify(s);
 export function deserialize(json: string): GameState | null {
   try {
     const s = JSON.parse(json) as GameState;
-    if (s?.version !== 1 || typeof s.day !== 'number') return null;
+    // 争点が3つに絞られる前のセーブ（issues が無い）は読み込まない
+    if (s?.version !== 1 || typeof s.day !== 'number' || !Array.isArray(s.issues)) return null;
     return s;
   } catch {
     return null;

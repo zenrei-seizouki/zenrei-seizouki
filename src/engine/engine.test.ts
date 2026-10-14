@@ -24,6 +24,8 @@ const prec = (o: Partial<Precedent> & Pick<Precedent, 'no' | 'subject' | 'object
 });
 
 const withCase = (s: GameState, c: CaseDef): GameState => ({ ...structuredClone(s), currentCase: c });
+/** メーターを平常に戻す（国が荒れている減りを切り離して、威信の増減だけを見る） */
+const calm = (s: GameState): GameState => ({ ...s, meters: { 秩序: 0, 経済: 0, 自由: 0, 幸福: 0 } });
 
 describe('ontology', () => {
   it('isDescendant は自身・親・root を含む', () => {
@@ -151,7 +153,7 @@ describe('判決の適用', () => {
 
   it('従う: 引用+1 / 威信+1', () => {
     let s = applyRuling(start(), { kind: 'new', verdict: 'grant', level: 2 }).state;
-    s = withCase(s, CASE_BY_ID['occupy-02']);
+    s = calm(withCase(s, CASE_BY_ID['occupy-02']));
     expect(optionsFor(s).governing?.no).toBe(1);
     const before = s.authority;
     const r = applyRuling(s, { kind: 'follow', verdict: 'grant' });
@@ -163,7 +165,7 @@ describe('判決の適用', () => {
 
   it('従いつつ拡張: 射程が書き換わり威信+2', () => {
     let s = applyRuling(start(), { kind: 'new', verdict: 'grant', level: 0 }).state; // 猫×キーボード
-    s = withCase(s, { ...CASE_BY_ID['occupy-02'], subject: 'cat', object: 'keyboard' });
+    s = calm(withCase(s, { ...CASE_BY_ID['occupy-02'], subject: 'cat', object: 'keyboard' }));
     const o = optionsFor(s);
     expect(o.extendLevels).toEqual([1, 2]);
     const before = s.authority;
@@ -172,14 +174,14 @@ describe('判決の適用', () => {
     expect(r.state.authority).toBe(before + 2);
   });
 
-  it('区別: 例外が追記され、その葉には以後適用されない。威信-2', () => {
+  it('区別: ただし書きが追記され、その葉には以後適用されない。威信-1', () => {
     let s = applyRuling(start(), { kind: 'new', verdict: 'grant', level: 2 }).state;
-    s = withCase(s, CASE_BY_ID['occupy-02']); // 老人×ベンチ
+    s = calm(withCase(s, CASE_BY_ID['occupy-02'])); // 老人×ベンチ
     expect(optionsFor(s).verdictKind.deny).toBe('against');
     const before = s.authority;
     const r = applyRuling(s, { kind: 'distinguish', verdict: 'deny', exception: 'bench' });
     expect(r.state.precedents[0].exceptions).toEqual(['bench']);
-    expect(r.state.authority).toBe(before - 2); // 世論 split
+    expect(r.state.authority).toBe(before - 1); // 世論 split
     expect(r.state.stats.distinguishes).toBe(1);
     expect(applies(r.state.precedents[0], CASE_BY_ID['occupy-02'])).toBe(false);
     expect(applies(r.state.precedents[0], CASE_BY_ID['occupy-03'])).toBe(true);
@@ -242,16 +244,20 @@ describe('判決の適用', () => {
 });
 
 describe('事件の抽選', () => {
-  it('初回は 占有-01 → 労働-02 → 占有-02 の順に固定', () => {
+  it('初回は 占有-01 → 占有-02 の順に固定。3日目以降は通常の抽選（占有以外の争点）', () => {
     let s = newGame({ seed: 3, opening: true });
+    expect(s.issues).toContain('occupy');
     const seen: string[] = [s.currentCase!.id];
     for (let i = 0; i < 2; i++) {
-      s = applyRuling(s, { kind: 'new', verdict: 'grant', level: 0 }).state;
-      if (optionsFor(s).governing) s = applyRuling(s, { kind: 'follow', verdict: 'grant' }).state;
+      const g = optionsFor(s).governing;
+      s = applyRuling(s, g ? { kind: 'follow', verdict: g.verdict } : { kind: 'new', verdict: 'grant', level: 0 }).state;
       s = advance(s);
       seen.push(s.currentCase!.id);
     }
-    expect(seen).toEqual(['occupy-01', 'labor-02', 'occupy-02']);
+    expect(seen.slice(0, 2)).toEqual(['occupy-01', 'occupy-02']);
+    // 3日目: 序盤は新しい争点を優先するので、占有ではない別の争点
+    expect(s.currentCase!.issue).not.toBe('occupy');
+    expect(s.issues).toContain(s.currentCase!.issue);
   });
 
   it('同じシードなら同じ事件列（再現性）', () => {
@@ -273,6 +279,7 @@ describe('事件の抽選', () => {
     const rng = () => makeRng(99);
     // 狭い判例だけ → occupy-04/05/06/07/08/09 は出ない
     let s = newGame({ seed: 5 });
+    s.issues = ['occupy', 'labor', 'eat'];
     s.day = 8;
     s.precedents = [prec({ no: 1, subject: 'cat', object: 'keyboard' })];
     const ids = new Set<string>();

@@ -101,7 +101,7 @@ export function Result({ game, album, isNew, onAgain, onTitle, onAlbum }: { game
 
         <div class="sec">
           <span>この国の奇妙な法律</span>
-          <small>引用数順</small>
+          <small>ただし書きの多い順</small>
         </div>
         {tops.length === 0 && <div class="empty">法律は、ひとつも作られなかった。</div>}
         {tops.map((p, i) => (
@@ -112,7 +112,7 @@ export function Result({ game, album, isNew, onAgain, onTitle, onAlbum }: { game
                 <PrecedentText p={p} />
               </div>
               <div class="ci">
-                第{p.no}号・引用{p.citations}回
+                第{p.no}号・ただし書き{p.exceptions.length}つ・引用{p.citations}回
                 {p.overruledBy !== undefined ? '・のちに廃止' : ''}
               </div>
             </div>

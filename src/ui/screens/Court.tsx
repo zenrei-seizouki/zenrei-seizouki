@@ -3,7 +3,7 @@ import { ISSUES } from '../../data/issues';
 import { NODES } from '../../data/ontology';
 import { findGoverning, boundCount } from '../../engine/precedent';
 import { label, nodeAtLevel } from '../../engine/ontology';
-import { SCOPE_BONUS } from '../../engine/meters';
+import { COST_DISTINGUISH, COST_OVERRULE, CROWD_AGAINST_FOLLOWING, SCOPE_BONUS } from '../../engine/meters';
 import { applyRuling, optionsFor, type RulingResult } from '../../engine/ruling';
 import { advance } from '../../engine/state';
 import type { Choice, GameState, Level, Precedent, Verdict } from '../../engine/types';
@@ -226,6 +226,10 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
     </div>
   ) : null;
 
+  // 傍聴席がこの判決に味方か逆か（判例どおりに裁いて世論と逆だと、威信が重く減る）
+  const crowdSide: 'agree' | 'against' | 'split' =
+    c.crowdLean === 'split' ? 'split' : (c.crowdLean === 'plaintiff') === (verdict === 'grant') ? 'agree' : 'against';
+
   const followScreen = gov && (
     <>
       <div class="paper">
@@ -235,7 +239,9 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
         </div>
         <div class="holding">第{gov.no}号判例に従い、本件請求を{verdict === 'grant' ? '認容' : '棄却'}する。</div>
       </div>
-      <div class="choices" style={{ marginTop: '14px' }}>
+      {crowdSide === 'against' && <p class="hint warn">傍聴席は逆の側だ。判例どおりに裁くと、威信がさらに −{CROWD_AGAINST_FOLLOWING}。</p>}
+      {crowdSide === 'agree' && <p class="hint">傍聴席も味方だ。判例どおりに裁いて、威信 +1。</p>}
+      <div class="choices" style={{ marginTop: '8px' }}>
         <button class="choice" onClick={() => pronounce({ kind: 'follow', verdict })}>
           <span class="g">従</span>
           <div>
@@ -261,15 +267,27 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
   const deviateScreen = gov && (
     <>
       <div class="scopeq">第{gov.no}号判例に逆らう。どうする？</div>
-      <div class="choices">
+      <div class="paper">
+        <div class="ph">
+          <b>この条文に</b>
+          <span>ただし書きを足すか、取り消すか</span>
+        </div>
+        <div class="holding" style={{ minHeight: 0 }}>
+          <PrecedentText p={gov} />
+          <span class="ex blank">ただし、＿＿の場合を除く。</span>
+        </div>
+      </div>
+      {crowdSide === 'agree' && <p class="hint">傍聴席は、この判決の味方だ（威信 +1）。</p>}
+      {crowdSide === 'against' && <p class="hint warn">傍聴席は、この判決に逆らっている（威信 −1）。</p>}
+      <div class="choices" style={{ marginTop: '8px' }}>
         {opts.distinguishNodes.map((n) => (
           <button key={n} class="choice" onClick={() => pronounce({ kind: 'distinguish', verdict, exception: n })}>
             <span class="g">{NODES[n].glyph}</span>
             <div>
-              <b>区別する</b>
+              <b>ただし書きを足す（区別）</b>
               <div class="d">ただし、{label(n)}の場合を除く。</div>
             </div>
-            <span class="c">威信−2</span>
+            <span class="c">威信−{COST_DISTINGUISH}</span>
           </button>
         ))}
         <button class="choice danger" onClick={() => toScope('overrule')}>
@@ -278,7 +296,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
             <b>判例変更</b>
             <div style={{ fontSize: '11.5px' }}>第{gov.no}号を取り消して、新しい判例を作る</div>
           </div>
-          <span class="c">威信−4</span>
+          <span class="c">威信−{COST_OVERRULE}</span>
         </button>
       </div>
     </>
@@ -287,7 +305,7 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
   const sN = nodeAtLevel(c.subject, scope);
   const oN = nodeAtLevel(c.object, scope);
   const cnt = boundCount(sN, oN);
-  const bonus = mode === 'extend' ? 2 : mode === 'overrule' ? SCOPE_BONUS[scope] - 4 : SCOPE_BONUS[scope];
+  const bonus = mode === 'extend' ? 2 : mode === 'overrule' ? SCOPE_BONUS[scope] - COST_OVERRULE : SCOPE_BONUS[scope];
   const scopeScreen = (
     <>
       <div class="paper">
@@ -337,7 +355,9 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
           <CourtBg />
           <div class="plaque">法</div>
           <div class="casetag">
-            <div class="no">事件簿　{c.generated ? '臨時' : c.id.replace(/^[a-z]+-/, '第') + '号'}</div>
+            <div class="no">
+              {ISSUES[c.issue].label}　{c.generated ? '臨時' : c.id.replace(/^[a-z]+-/, '第') + '号'}
+            </div>
             <div class="tt">{c.title}</div>
           </div>
           <button
@@ -381,14 +401,14 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
         <div class="crowdnote">{CROWD_NOTE[c.crowdLean]}</div>
       )}
 
-      <div class="desk" ref={deskRef} style={{ scrollMarginTop: '82px' }}>
+      <div class="desk" ref={deskRef} style={{ scrollMarginTop: '56px' }}>
         {phase === 'dialogue' && (
           <div class="waiting">
             <b>審理中</b>
             当事者の主張を聞いています
           </div>
         )}
-        {phase !== 'dialogue' && slip}
+        {phase !== 'dialogue' && phase !== 'deviate' && slip}
         {phase === 'verdict' && verdictScreen}
         {phase === 'follow' && followScreen}
         {phase === 'deviate' && deviateScreen}

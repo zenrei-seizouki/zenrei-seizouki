@@ -105,7 +105,9 @@ export interface GameState {
   precedents: Precedent[];
   usedCaseIds: string[];
   crisisUsed: string[];
-  opening: string[]; // 1〜3日目の固定順（チュートリアル/デイリー）
+  /** この任期に出る争点（6つから3つ。シード付き抽選なのでデイリーは全員同じ） */
+  issues: IssueId[];
+  opening: string[]; // 序盤の固定順（チュートリアル/デイリー: 占有-01 → 占有-02）
   currentCase: CaseDef | null;
   log: RulingLog[];
   stats: { follows: number; distinguishes: number; overrules: number; extends: number; crowdAgree: number; crowdAgainst: number };

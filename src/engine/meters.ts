@@ -31,7 +31,7 @@ export function addMeters(
 }
 
 /** メーターがこの絶対値以上だと「国が荒れている」: 毎回 威信−1（最大−2） */
-export const STRAIN_AT = 7;
+export const STRAIN_AT = 5;
 /** 1日ごとにメーターが0へ戻る量（国は少しずつ落ち着く） */
 export const DRIFT_PER_DAY = 0.4;
 
@@ -44,5 +44,18 @@ export function drift(meters: Record<MeterId, number>): Record<MeterId, number> 
   return next;
 }
 
-/** N日ごとに威信が1すり減る（広い判例で稼がないとジリ貧になる） */
-export const UPKEEP_EVERY = 2;
+/** N日ごと（N日目・2N日目…）の判決で威信が1すり減る（広い判例で稼がないとジリ貧になる） */
+export const UPKEEP_EVERY = 4;
+
+// ---- 威信の増減（DESIGN §2.2 / §5）----
+/** 区別（ただし書き）のコスト。安いので、判例に逆らうならまず区別 */
+export const COST_DISTINGUISH = 1;
+/** 判例変更のコスト（旧判例が廃止され、国は不安定になる） */
+export const COST_OVERRULE = 4;
+/**
+ * 判例どおり（従う/拡張）に判決して、それが世論と逆だったときの減り。世論に逆らうなら「ただし書き」の出番。
+ * 設計の初期値は −2 だったが、sim で「広く＋判例どおり」の連打が最強でないことを確認するため −3 に上げた（DESIGN §8.3）。
+ */
+export const CROWD_AGAINST_FOLLOWING = 3;
+/** それ以外で世論に逆らったときの減り */
+export const CROWD_AGAINST = 1;

@@ -2,7 +2,7 @@ import { subjectCategory } from '../data/ontology';
 import { isDescendant, levelOf, nodeAtLevel } from './ontology';
 import { distinguishNews, extendNews, followNews, newPrecedentNews, overruleNews } from './newsText';
 import { findGoverning } from './precedent';
-import { SCOPE_BONUS, SCOPE_MULT, STRAIN_AT, UPKEEP_EVERY, addMeters, meterVector } from './meters';
+import { COST_DISTINGUISH, COST_OVERRULE, CROWD_AGAINST, CROWD_AGAINST_FOLLOWING, SCOPE_BONUS, SCOPE_MULT, STRAIN_AT, UPKEEP_EVERY, addMeters, meterVector } from './meters';
 import { MAX_AUTHORITY } from './state';
 import { METER_IDS, TERM, type CaseDef, type Choice, type GameEvent, type GameState, type Level, type Precedent, type RulingLog, type Verdict } from './types';
 
@@ -125,8 +125,8 @@ export function applyRuling(prev: GameState, choice: Choice): RulingResult {
       gov.exceptions.push(e);
       s.stats.distinguishes += 1;
       events.push({ type: 'exceptionAdded', no: gov.no, node: e });
-      authority -= 2;
-      parts.push({ label: `第${gov.no}号判例を区別`, value: -2 });
+      authority -= COST_DISTINGUISH;
+      parts.push({ label: `第${gov.no}号判例にただし書き`, value: -COST_DISTINGUISH });
       deltas = meterVector(c.issue, v, 1);
       news = distinguishNews(gov, e);
       touched = gov;
@@ -141,8 +141,8 @@ export function applyRuling(prev: GameState, choice: Choice): RulingResult {
       s.precedents.push(p);
       events.push({ type: 'overruled', no: gov.no, by: p.no });
       events.push({ type: 'precedentCreated', precedent: p });
-      authority -= 4;
-      parts.push({ label: `第${gov.no}号判例を変更`, value: -4 });
+      authority -= COST_OVERRULE;
+      parts.push({ label: `第${gov.no}号判例を変更`, value: -COST_OVERRULE });
       authority += SCOPE_BONUS[lv];
       if (SCOPE_BONUS[lv]) parts.push({ label: `第${p.no}号判例 成立`, value: SCOPE_BONUS[lv] });
       deltas = meterVector(c.issue, v, SCOPE_MULT[lv]);
@@ -169,9 +169,11 @@ export function applyRuling(prev: GameState, choice: Choice): RulingResult {
   let crowd: RulingLog['crowd'] = 'split';
   if (lean) {
     crowd = lean === v ? 'agree' : 'against';
-    const d = crowd === 'agree' ? 1 : -1;
+    // 判例どおりに判決したのに世論と逆 → 重く減る。世論に逆らうなら「ただし書き」で外すほうが安い
+    const followed = choice.kind === 'follow' || choice.kind === 'extend';
+    const d = crowd === 'agree' ? 1 : -(followed ? CROWD_AGAINST_FOLLOWING : CROWD_AGAINST);
     authority += d;
-    parts.push({ label: crowd === 'agree' ? '傍聴席が味方' : '傍聴席が敵', value: d });
+    parts.push({ label: crowd === 'agree' ? '傍聴席が味方' : followed ? '判例どおりなのに傍聴席が敵' : '傍聴席が敵', value: d });
     if (crowd === 'agree') s.stats.crowdAgree += 1;
     else s.stats.crowdAgainst += 1;
   }
@@ -183,7 +185,7 @@ export function applyRuling(prev: GameState, choice: Choice): RulingResult {
     parts.push({ label: '日々の重圧', value: -1 });
   }
 
-  // 国が荒れている: メーターが限界(±8)にあると、判事への風当たりが強くなる
+  // 国が荒れている: メーターが限界近く(±7)にあると、判事への風当たりが強くなる
   const strained = METER_IDS.filter((m) => Math.abs(s.meters[m]) >= STRAIN_AT).length;
   if (strained) {
     const d = -Math.min(strained, 2);

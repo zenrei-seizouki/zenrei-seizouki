@@ -51,7 +51,7 @@ export function extendNews(p: Precedent, c: CaseDef, to: Level) {
 
 export function distinguishNews(p: Precedent, node: NodeId) {
   return {
-    hl: `第${p.no}号判例に例外「ただし${label(node)}を除く」`,
+    hl: `第${p.no}号判例に、ただし書き「${label(node)}を除く」`,
     sub: `全国の${label(node)}、静かに立ち上がる`,
   };
 }

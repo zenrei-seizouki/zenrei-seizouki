@@ -23,26 +23,35 @@ Node.js 20 以上を推奨（開発は 24 で確認）。
 
 ### シミュレーター（`npm run sim`）
 
-方針（常に広く / 常に狭く / ランダム / 常に世論に従う / 判例どおり）ごとに N プレイして、次を出力する。
+方針（常に広く / 常に狭く / ランダム / 常に世論に従う / 判例どおり(慎重) / **広く＋判例どおり連打** / **世論を読んで区別**）ごとに N プレイして、次を出力する。
 
 | 指標 | 目標（DESIGN §8.3） |
 |---|---|
-| 既存判例が適用された事件の割合 | 40〜60%（広く裁く方針ほど高く、狭いほど低い＝射程の差が出る） |
+| 既存判例が適用された事件の割合 | 40〜60%（ランダム方針。広く裁く方針ほど高く、狭いほど低い＝射程の差が出る） |
 | 罷免率（ランダム方針） | 10〜25% |
+| **「広く＋判例どおり連打」の罷免率** | ランダムより高い（連打が最強にならない＝ただし書きに意味がある） |
+| 区別（ただし書き）の回数/プレイ | 「世論を読んで区別」で約4回。罷免はほぼ0 |
 | 1プレイで判例が3回以上適用 | 大半のプレイで満たす |
-| 連鎖事件 / 自動生成事件の割合・危機事件の出現 | 参考値 |
+| 連鎖事件の出現率・危機事件の出現 | 参考値 |
+| 自動生成事件の割合 | 0%（原則オフ） |
 | エンディング分布・到達できる名前付き種数 | 偏りの確認 |
 | 例外・クラッシュ | 0 |
 
-バランスのつまみは `src/engine/meters.ts`（射程倍率・すり減り・荒れ判定）、`src/engine/selector.ts`（自動生成の確率・判例が当てはまる事件の重み）、`src/data/issues.ts`（争点ごとのメーター変動）。
+最新の結果は [docs/sim-result.txt](docs/sim-result.txt)（ランダム: 罷免 22.1% / 判例適用 48.7%、広く＋判例どおり連打: 罷免 30.9%、世論を読んで区別: 罷免 0.3% / 区別 約4回）。
+
+バランスのつまみ:
+- `src/engine/meters.ts` — 射程倍率、区別のコスト（−1）、判例変更のコスト（−4）、**判例どおりで世論と逆の減り（−3）**、「国が荒れている」の閾値（±5）、日々の重圧（4日ごと）、メーターの自然回復
+- `src/engine/selector.ts` — 自動生成の確率（0）、判例が当てはまる事件・連鎖事件の重み（×3）
+- `src/engine/issues.ts` — 1任期に出る争点の数（3）
+- `src/data/issues.ts` — 争点ごとのメーター変動 / `src/data/mood.ts` — 号外の「国の様子」の文
 
 ## 構成
 
 ```
 src/
   engine/      UIに依存しない純粋関数（ここをテストで固めてある）
-    ontology / precedent / ruling / selector / generate / meters / endings / text / newsText / rng / state
-  data/        ontology.ts issues.ts news.ts endings.ts generated.ts  cases/*.ts（手書き60件＋危機6件）
+    ontology / precedent / ruling / selector / issues / mood / generate / meters / endings / text / newsText / rng / state
+  data/        ontology.ts issues.ts news.ts mood.ts endings.ts generated.ts  cases/*.ts（手書き84件＋危機6件。1任期はそのうち3争点）
   ui/          App・screens(Title/Court/Result/Album)・components・styles.css・share.ts・storage.ts
 scripts/       sim.ts（シミュレーター） / optimize-art.mjs（画像→WebP） / gen*.sh（Codex 画像生成）
 public/art/    本番用イラスト（WebP・最大幅512px・1枚100KB以下）
@@ -65,7 +74,7 @@ node scripts/optimize-art.mjs                # art-src/*.png → public/art/*/*.
 画像が無い当事者は、墨ベタの切り絵風シルエット（SVG）で代用される（絵文字は使わない）。使用量上限に当たったら `gen-all.sh` は途中で止まるので、時間を置いて再実行すれば続きから生成される（同時数は 2〜3 本に抑えること）。
 画風が揃っているかの確認用に `node scripts/contact.mjs <出力.png> <name>...` でコンタクトシートを作れる（結果は `docs/art-contact/`）。
 
-`docs/screenshots/` に画面のスクショ（スマホ幅375px・PC 1280px）、`docs/sim-result.txt` に `npm run sim` の出力を置いている。
+`docs/screenshots/` に画面のスクショ（スマホ幅375px・PC 1280px。v0.2: メーター非表示・ただし書きが連結した条文）、`docs/sim-result.txt` に `npm run sim` の出力を置いている。
 
 ## 公開（デプロイ手順）
 

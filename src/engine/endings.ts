@@ -54,7 +54,7 @@ export function judgeTitle(s: GameState): string {
   const st = s.stats;
   const totalCites = s.precedents.reduce((a, p) => a + p.citations, 0);
   if (st.overrules >= 3) return '手のひら返しの名人';
-  if (st.distinguishes >= 3) return '例外の魔術師';
+  if (st.distinguishes >= 3) return '但し書き職人';
   if (s.log.length >= 5 && st.crowdAgainst === 0 && st.crowdAgree >= 3) return 'ポピュリスト判事';
   if (totalCites >= 4) return '前例製造機';
   return '普通の裁判官';
@@ -78,7 +78,10 @@ export function peopleVoice(s: GameState): { text: string; by: string } {
 // ---- 奇妙な法律トップ3 / 百年後新聞の見出し ----
 export function topPrecedents(s: GameState, n = 3): Precedent[] {
   const alive = (p: Precedent) => (p.overruledBy === undefined ? 1 : 0);
-  return [...s.precedents].sort((a, b) => alive(b) - alive(a) || b.citations - a.citations || levelRank(b) - levelRank(a) || a.no - b.no).slice(0, n);
+  // 「ただし書き」が一番多い条文が主役（同数なら引用数）。取り消された判例は後ろへ
+  return [...s.precedents]
+    .sort((a, b) => alive(b) - alive(a) || b.exceptions.length - a.exceptions.length || b.citations - a.citations || levelRank(b) - levelRank(a) || a.no - b.no)
+    .slice(0, n);
 }
 const levelRank = (p: Precedent) => NODES[p.subject].level;
 

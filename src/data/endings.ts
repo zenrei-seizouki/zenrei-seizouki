@@ -56,6 +56,7 @@ export const ENDINGS: EndingDef[] = [
     { id: 'precedent-machine', name: '前例製造機', rarity: 4, text: 'ひとつの判例が、国中で引用され続けた。あなたは機械になった。', when: (s) => maxCitations(s) >= 5 },
     { id: 'one-law', name: 'たった1つの法', rarity: 5, text: '全ての事件を、たった1本の判例で裁いた。', when: (s) => s.precedents.length === 1 && s.log.length >= 6 },
     { id: 'exception-mage', name: '例外の魔術師', rarity: 2, text: '判例の隙間をぬう、例外の達人。', when: (s) => s.stats.distinguishes >= 3 },
+    { id: 'patchwork', name: 'ツギハギ法の国', rarity: 4, text: '本文より「ただし書き」のほうが長い法律が、国じゅうに貼り出された。', when: (s) => s.precedents.some((p) => p.overruledBy === undefined && p.exceptions.length >= 3) },
     { id: 'flip-master', name: '手のひら返しの名人', rarity: 3, text: '昨日の判例は、今日の取り消し線。', when: (s) => s.stats.overrules >= 3 },
     { id: 'populist', name: 'ポピュリスト', rarity: 3, text: '傍聴席は、一度もあなたに逆らわなかった。', when: (s) => s.log.length >= 6 && s.stats.crowdAgainst === 0 && s.stats.crowdAgree >= 4 },
     { id: 'public-enemy', name: '世論の敵', rarity: 4, text: '傍聴席からは、ため息しか聞こえなかった。', when: (s) => s.log.length >= 6 && s.stats.crowdAgree === 0 && s.stats.crowdAgainst >= 4 },
