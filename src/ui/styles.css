@@ -346,7 +346,12 @@ h1, h2, h3, p { margin: 0; }
 .medal .d { font-size: 11.5px; opacity: 0.9; line-height: 1.6; }
 .medal .st { margin-left: auto; color: var(--paper); font-size: 11px; white-space: nowrap; align-self: flex-start; letter-spacing: 0.1em; }
 .medal.new::after { content: '新発見'; position: absolute; right: -4px; top: -10px; background: var(--red); color: var(--paper); font-size: 11px; font-weight: 800; padding: 0 7px; transform: rotate(5deg); border: 1.5px solid var(--ink); }
+.endrow { display: flex; gap: 12px; align-items: center; margin: 0 0 10px; }
+.endphoto { width: 150px; height: 150px; flex: none; transform: rotate(-1deg); }
+.endrow .cap { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.endrow .cap b { display: block; font-size: 15px; color: var(--ink); line-height: 1.4; margin-bottom: 2px; }
 .cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 10px; border-top: 1.5px solid var(--ink); padding-top: 8px; }
+.cols.single { grid-template-columns: 1fr; }
 .cols .main { font-weight: 800; font-size: 19px; line-height: 1.45; }
 .cols .main small { display: block; font-size: 11.5px; font-weight: 500; margin-top: 4px; line-height: 1.6; color: var(--muted); }
 .cols .sidec { border-left: 1px solid var(--ink); padding-left: 10px; font-weight: 800; font-size: 13px; line-height: 1.55; }

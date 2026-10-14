@@ -3,10 +3,13 @@ import { ENDING_TOTAL } from '../../data/endings';
 import { NODES } from '../../data/ontology';
 import { countryName, futureHeadlines, heroLeaf, judgeTitle, peopleVoice, primaryEnding, topPrecedents, unlockedEndings } from '../../engine/endings';
 import type { GameState } from '../../engine/types';
-import { Portrait } from '../components/art';
+import { EndingRow, Portrait } from '../components/art';
 import { PrecedentText } from '../components/parts';
 import { buildShareText, drawShareCard, shareOnX } from '../share';
 import type { Album } from '../storage';
+
+/** 挿絵（public/art/ending/end-<id>.webp）がある名前付きエンディング */
+const HAS_END_ART = new Set(['diet-cat', 'all-leave', 'eat-all', 'eat-anything', 'takeshi-land', 'sleeping-nation', 'pigeon-gov', 'vending-mp', 'anthem-wiin', 'suzuki-monday', 'sato-nation', 'park-state']);
 
 const GROUP_MARK: Record<string, string> = { chain: '連', block: '砦', crisis: '危', beneficiary: '国', style: '流', dismissal: '免', none: '平' };
 
@@ -76,17 +79,20 @@ export function Result({ game, album, isNew, onAgain, onTitle, onAlbum }: { game
           </div>
           <div class="st">{'★'.repeat(ending.rarity)}{'☆'.repeat(5 - ending.rarity)}</div>
         </div>
+        {HAS_END_ART.has(ending.id) && <EndingRow id={ending.id} name={ending.name} />}
         {heads.length > 0 && (
-          <div class="cols">
+          <div class={`cols ${heads.length > 1 ? '' : 'single'}`}>
             <div class="main">
               {heads[0].hl}
               <small>{heads[0].sub}</small>
             </div>
-            <div class="sidec">
-              {heads.slice(1).map((h) => (
-                <div key={h.no}>{h.hl}</div>
-              ))}
-            </div>
+            {heads.length > 1 && (
+              <div class="sidec">
+                {heads.slice(1).map((h) => (
+                  <div key={h.no}>{h.hl}</div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         <div class="voice">

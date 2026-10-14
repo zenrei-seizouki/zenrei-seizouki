@@ -148,3 +148,20 @@ export function CourtBg() {
   if (failed) return null;
   return <img class="bgimg" src={artUrl('scene', 'court')} alt="" onError={() => setFailed(true)} draggable={false} />;
 }
+
+/** 名前付きエンディングの挿絵（報道写真風）と写真説明。画像が無ければ何も描かない */
+export function EndingRow({ id, name }: { id: string; name: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return (
+    <div class="endrow">
+      <div class="halftone endphoto">
+        <img src={artUrl('ending', `end-${id}`)} alt="" onError={() => setFailed(true)} draggable={false} />
+      </div>
+      <div class="cap">
+        <b>{name}</b>
+        <span>（写真は当時の様子とされる。出典は不明）</span>
+      </div>
+    </div>
+  );
+}
