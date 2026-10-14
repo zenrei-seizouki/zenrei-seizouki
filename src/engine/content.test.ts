@@ -12,10 +12,10 @@ import { advance, newGame } from './state';
 import { applyRuling } from './ruling';
 
 describe('コンテンツの整合性', () => {
-  it('手書き60件(6争点×10)＋危機6件', () => {
-    expect(HAND_CASES).toHaveLength(60);
+  it('手書き84件(6争点×14)＋危機6件', () => {
+    expect(HAND_CASES).toHaveLength(84);
     expect(CRISIS_CASES).toHaveLength(6);
-    for (const i of ISSUE_IDS) expect(HAND_CASES.filter((c) => c.issue === i)).toHaveLength(10);
+    for (const i of ISSUE_IDS) expect(HAND_CASES.filter((c) => c.issue === i)).toHaveLength(14);
   });
   it('idは一意で、主体・客体は正しい葉', () => {
     expect(new Set(ALL_CASES.map((c) => c.id)).size).toBe(ALL_CASES.length);

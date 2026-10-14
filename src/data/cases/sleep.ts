@@ -125,12 +125,12 @@ export const sleepCases: CaseDef[] = [
     subject: 'worker', object: 'phone', crowdLean: 'plaintiff',
     requires: [covers('sleep', 'human', 'private', 'deny')],
     plaintiff: { name: '会社員・小林', sub: '35年ローン', art: 'worker', lines: [
-      '寝言にスマホのAIが反応して、家を買いました。',
-      '{cite}のせいで、寝てても私の責任らしいです。',
+      '昨晩の私は完全に熟睡しており、寝言でスマホの音声アシスタントに注文しただけです。',
+      'なのに{cite}のせいで、寝てても私の責任らしいです。',
     ] },
     defendant: { name: '不動産会社', sub: '営業担当', art: 'senior', lines: [
-      '良い物件ですよ。',
-      '日当たりも、寝室の寝心地も、保証します。',
+      '寝言で「頭金なし、35年変動金利、日当たり良好で」とハッキリ指定されました。',
+      'あと指紋認証まで突破しているのは、もう強い意志があるんですよ。',
     ] },
   },
 ];

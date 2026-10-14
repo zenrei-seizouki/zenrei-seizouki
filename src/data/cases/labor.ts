@@ -83,12 +83,12 @@ export const laborCases: CaseDef[] = [
     subject: 'goldfish', object: 'lunch', crowdLean: 'split',
     requires: [covers('labor', 'animal', 'concept')],
     plaintiff: { name: 'オフィスの金魚・ギン', sub: '通訳: 新入社員', art: 'goldfish', lines: [
-      '（ぱくぱく）',
-      '（通訳）「昼休みに、社員を癒やし続けました。有給をください」',
+      'パク、パク。',
+      '（通訳）「昼休みのたび、ガラス越しに口をパクパクさせる接客を3年続けました。有給を請求します」',
     ] },
     defendant: { name: '総務部', sub: '水槽担当', art: 'senior', lines: [
-      '水槽の掃除をしているのは、こっちです。',
-      '癒やされたかどうかは、アンケートでは「どちらでもない」でした。',
+      'あれは接客ではなく、エサをくれと暴れているだけです。',
+      'あと有給を取ってどこへ行く気ですか。水槽の外は経理部ですよ。',
     ] },
   },
   {

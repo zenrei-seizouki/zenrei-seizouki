@@ -19,13 +19,12 @@ export const occupyCases: CaseDef[] = [
     id: 'occupy-02', issue: 'occupy', tier: 1, title: 'ベンチ20年事件',
     subject: 'elder', object: 'bench', crowdLean: 'split', requires: [anyPrecedent('occupy')],
     plaintiff: { name: '山田ゲン（82）', sub: '元・郵便局員', art: 'elder', lines: [
-      'わしはこのベンチに20年座っとる。',
-      '{cite}によれば、もうわしのもんじゃろ。',
-      '雨の日も、雪の日も、座っとった。',
+      '20年座り続けて、もうベンチの木目がわしのお尻の形にへこんどる。',
+      '{cite}によれば、ここまで馴染んだらわしのもんじゃろ。',
     ] },
     defendant: { name: '市の公園課', sub: '担当: 新人の木下', art: 'clerk', lines: [
-      'ベンチは市民みんなのものです。',
-      'あと山田さん、毎朝ほかの人を「わしの席じゃ」と追い払っています。',
+      '塗装が剥げたのを「馴染んだ」と言わないでください。',
+      'あとベンチの裏に、勝手に「山田」と表札を貼るのをやめてください。',
     ] },
   },
   {
