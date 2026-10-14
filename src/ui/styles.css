@@ -283,6 +283,12 @@ h1, h2, h3, p { margin: 0; }
 .mood b { flex: none; background: var(--ink); color: var(--paper); font-size: 10.5px; letter-spacing: 0.15em; padding: 0 6px; font-weight: 800; }
 .mood.warn { border-left-color: var(--ink); color: var(--red); }
 .mood.warn b { background: var(--red); }
+.real { position: relative; margin: 16px 0 2px; border: 3px double var(--ink); background: #fffdf3; padding: 12px 11px 6px; }
+.real .tag { position: absolute; top: -10px; left: 10px; background: var(--ink); color: var(--paper); font-size: 11px; font-weight: 800; letter-spacing: 0.2em; padding: 0 9px 0 11px; line-height: 1.6; }
+.real .tx { font-size: 12px; font-weight: 500; line-height: 1.75; }
+.real .src { margin-top: 3px; font-size: 10px; color: var(--muted); text-align: right; line-height: 1.5; }
+.real .disc { margin-top: 5px; padding-top: 3px; border-top: 1px dotted var(--ink); font-size: 9.5px; color: var(--muted); letter-spacing: 0.04em; }
+.extra .nextbtn { position: sticky; bottom: 4px; z-index: 3; }
 .nextbtn { margin-top: 12px; }
 .parts { margin-top: 8px; font-size: 10.5px; color: var(--muted); line-height: 1.7; }
 .parts span + span::before { content: '／'; margin: 0 3px; }

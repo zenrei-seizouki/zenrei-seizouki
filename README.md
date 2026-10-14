@@ -37,7 +37,7 @@ Node.js 20 以上を推奨（開発は 24 で確認）。
 | エンディング分布・到達できる名前付き種数 | 偏りの確認 |
 | 例外・クラッシュ | 0 |
 
-最新の結果は [docs/sim-result.txt](docs/sim-result.txt)（ランダム: 罷免 22.1% / 判例適用 48.7%、広く＋判例どおり連打: 罷免 30.9%、世論を読んで区別: 罷免 0.3% / 区別 約4回）。
+最新の結果は [docs/sim-result.txt](docs/sim-result.txt)（ランダム: 罷免 22.9% / 判例適用 48.4%、広く＋判例どおり連打: 罷免 29.0%、世論を読んで区別: 罷免 0.5% / 区別 約4回）。
 
 バランスのつまみ:
 - `src/engine/meters.ts` — 射程倍率、区別のコスト（−1）、判例変更のコスト（−4）、**判例どおりで世論と逆の減り（−3）**、「国が荒れている」の閾値（±5）、日々の重圧（4日ごと）、メーターの自然回復
@@ -51,7 +51,7 @@ Node.js 20 以上を推奨（開発は 24 で確認）。
 src/
   engine/      UIに依存しない純粋関数（ここをテストで固めてある）
     ontology / precedent / ruling / selector / issues / mood / generate / meters / endings / text / newsText / rng / state
-  data/        ontology.ts issues.ts news.ts mood.ts endings.ts generated.ts  cases/*.ts（手書き84件＋危機6件。1任期はそのうち3争点）
+  data/        ontology.ts issues.ts news.ts mood.ts endings.ts generated.ts  cases/*.ts（手書き90件＋危機6件。1任期はそのうち3争点）
   ui/          App・screens(Title/Court/Result/Album)・components・styles.css・share.ts・storage.ts
 scripts/       sim.ts（シミュレーター） / optimize-art.mjs（画像→WebP） / gen*.sh（Codex 画像生成）
 public/art/    本番用イラスト（WebP・最大幅512px・1枚100KB以下）

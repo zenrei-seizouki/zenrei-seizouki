@@ -50,12 +50,14 @@ const nodes: OntNode[] = [
   L('umbrella', '傘', 0, 'object', 'private', '傘'),
   L('kotatsu', 'こたつ', 0, 'object', 'private', '炬'),
   L('phone', 'スマホ', 0, 'object', 'private', '携'),
+  L('photo', '写真', 0, 'object', 'private', '写'),
   // 食べ物
   L('pudding', 'プリン', 0, 'object', 'food', '菓'),
   L('agepan', '揚げパン', 0, 'object', 'food', '揚'),
   L('manju', 'お供えの饅頭', 0, 'object', 'food', '饅'),
   L('curry', '社食のカレー', 0, 'object', 'food', '汁'),
   L('fish', '焼き魚', 0, 'object', 'food', '魚'),
+  L('kaki', '柿', 0, 'object', 'food', '柿'),
   // 公共物
   L('bench', 'ベンチ', 0, 'object', 'public', '椅'),
   L('park', '公園', 0, 'object', 'public', '園'),

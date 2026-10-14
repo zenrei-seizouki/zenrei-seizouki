@@ -48,7 +48,7 @@ describe('ontology', () => {
     expect(depth('cat')).toBe(2);
     expect(leavesUnder('animal')).toHaveLength(5);
     expect(leavesUnder('anyone')).toHaveLength(SUBJECT_LEAVES.length);
-    expect(boundCount('anyone', 'anything')).toBe(15 * 20);
+    expect(boundCount('anyone', 'anything')).toBe(SUBJECT_LEAVES.length * OBJECT_LEAVES.length); // 葉が増えても壊れないよう、数は直書きしない
   });
 });
 

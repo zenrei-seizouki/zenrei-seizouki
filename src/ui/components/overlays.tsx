@@ -1,3 +1,4 @@
+import { REAL_NOTES } from '../../data/cases';
 import { ISSUES } from '../../data/issues';
 import { countryName, peopleVoice, topPrecedents } from '../../engine/endings';
 import { moodFor } from '../../engine/mood';
@@ -54,6 +55,24 @@ export function StampOverlay({ grant }: { grant: boolean }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * 「実際の裁判では」— 実話ベースの事件（REAL_NOTES にその事件の id があるときだけ）。新聞の囲み記事風。
+ * ゲームの判決が現実と同じ向きか逆向きかは出さない（現実の結論は単純な勝ち負けにならないものが多い）。
+ * 法律相談ではない旨の注記は、ゲーム全体でこの欄の中の1か所だけ（real.test.ts が数えている）。
+ */
+function RealNote({ caseId }: { caseId: string }) {
+  const n = REAL_NOTES[caseId];
+  if (!n) return null;
+  return (
+    <aside class="real">
+      <span class="tag">実際の裁判では</span>
+      <div class="tx">{n.text}</div>
+      <div class="src">出典：{n.source}</div>
+      <div class="disc">※ゲームの演出です。法律相談ではありません。</div>
+    </aside>
   );
 }
 
@@ -155,6 +174,7 @@ export function Extra({ events, c, day, last, dismissed, state, onNext }: { even
               </span>
             ))}
           </div>
+          <RealNote caseId={c.id} />
           <button class="btn nextbtn" onClick={onNext}>
             {dismissed ? '威信が尽きた — 結果を見る' : last ? '任期満了 — 結果を見る' : '次の事件へ'}
           </button>
