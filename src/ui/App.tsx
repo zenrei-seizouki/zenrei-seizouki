@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useErrorBoundary, useState } from 'preact/hooks';
 import { countryName, primaryEnding, unlockedEndings } from '../engine/endings';
 import { hashString } from '../engine/rng';
 import { newGame } from '../engine/state';
 import type { GameState } from '../engine/types';
 import { BookPaper } from './components/parts';
 import { Album } from './screens/Album';
+import { Broken } from './screens/Broken';
 import { Court } from './screens/Court';
 import { Result } from './screens/Result';
 import { Title } from './screens/Title';
@@ -19,10 +20,23 @@ export function App() {
   const [album, setAlbum] = useState<AlbumData>(() => loadAlbum());
   const [saved, setSaved] = useState<GameState | null>(() => loadGame());
   const [fresh, setFresh] = useState<string[]>([]);
+  /** 任期を続行できなくなった（古い形式のセーブ・壊れた状態・想定外の例外）。メッセージを持つ */
+  const [broken, setBroken] = useState<string | null>(null);
 
   useEffect(() => window.scrollTo(0, 0), [screen]);
 
+  /** 続行できない状態は捨てて、固まらずに「新しい任期を始めてください」へ。再開もできないようセーブも消す */
+  const fail = (e: unknown) => {
+    console.error(e);
+    saveGame(null);
+    setSaved(null);
+    setBroken(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
+  };
+  // 描画中の例外（子コンポーネント）も同じ画面へ
+  useErrorBoundary(fail);
+
   const begin = (g: GameState) => {
+    setBroken(null);
     setGame(g);
     saveGame(g);
     setScreen('court');
@@ -61,6 +75,7 @@ export function App() {
   };
 
   const toTitle = () => {
+    setBroken(null);
     setSaved(loadGame());
     setScreen('title');
   };
@@ -68,12 +83,13 @@ export function App() {
   return (
     <div class={`shell ${screen === 'court' ? 'has-side' : ''}`}>
       <main class="col">
-        {screen === 'title' && <Title album={album} hasSave={!!saved} onStart={start} onDaily={daily} onResume={resume} onAlbum={() => setScreen('album')} />}
-        {screen === 'court' && game && game.currentCase && <Court key={game.day + ':' + game.seed} game={game} onChange={change} onEnd={end} />}
-        {screen === 'result' && game && <Result game={game} album={album} isNew={fresh} onAgain={start} onTitle={toTitle} onAlbum={() => setScreen('album')} />}
-        {screen === 'album' && <Album album={album} onBack={toTitle} />}
+        {broken !== null && <Broken message={broken} onNew={start} onTitle={toTitle} />}
+        {broken === null && screen === 'title' && <Title album={album} hasSave={!!saved} onStart={start} onDaily={daily} onResume={resume} onAlbum={() => setScreen('album')} />}
+        {broken === null && screen === 'court' && game && game.currentCase && <Court key={game.day + ':' + game.seed} game={game} onChange={change} onEnd={end} onBroken={fail} />}
+        {broken === null && screen === 'result' && game && <Result game={game} album={album} isNew={fresh} onAgain={start} onTitle={toTitle} onAlbum={() => setScreen('album')} />}
+        {broken === null && screen === 'album' && <Album album={album} onBack={toTitle} />}
       </main>
-      {screen === 'court' && game && (
+      {broken === null && screen === 'court' && game && (
         <aside class="side">
           <BookPaper state={game} />
         </aside>

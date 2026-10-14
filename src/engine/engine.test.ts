@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CASE_BY_ID } from '../data/cases';
+import { OBJECT_LEAVES, SUBJECT_LEAVES } from '../data/ontology';
 import { depth, isDescendant, leavesUnder, nodeAtLevel } from './ontology';
 import { applies, boundCount, findGoverning, checkCondition } from './precedent';
 import { applyRuling, optionsFor } from './ruling';
@@ -46,8 +47,8 @@ describe('ontology', () => {
     expect(depth('animal')).toBe(1);
     expect(depth('cat')).toBe(2);
     expect(leavesUnder('animal')).toHaveLength(5);
-    expect(leavesUnder('anyone')).toHaveLength(15);
-    expect(boundCount('anyone', 'anything')).toBe(15 * 18);
+    expect(leavesUnder('anyone')).toHaveLength(SUBJECT_LEAVES.length);
+    expect(boundCount('anyone', 'anything')).toBe(15 * 20);
   });
 });
 

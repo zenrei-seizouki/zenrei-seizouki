@@ -402,6 +402,16 @@ h1, h2, h3, p { margin: 0; }
 .weekly .wl { margin: 8px 0; font-size: 13.5px; line-height: 1.7; }
 .weekly .wm { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 10px 0; }
 
+/* ===== 続行不可（古いセーブ・壊れた状態） ===== */
+.broken { min-height: 100dvh; padding: 56px 22px 30px; display: flex; flex-direction: column; }
+.broken .stamp { align-self: flex-start; border: 4px double var(--red); color: var(--red); font-family: var(--pop); font-size: 28px; padding: 2px 14px; transform: rotate(-4deg); filter: url(#rough); margin-bottom: 18px; }
+.broken h2 { font-size: 24px; line-height: 1.4; letter-spacing: 0.04em; border-bottom: 4px double var(--ink); padding-bottom: 8px; }
+.broken .lead { font-weight: 800; font-size: 17px; margin: 14px 0 4px; }
+.broken .why { font-size: 13px; color: var(--muted); line-height: 1.75; }
+.broken .btns { display: grid; gap: 14px; margin-top: 26px; }
+.broken .tech { margin-top: 22px; font-size: 11px; color: var(--muted); }
+.broken .tech pre { white-space: pre-wrap; word-break: break-all; margin: 6px 0 0; font-family: monospace; }
+
 /* ===== トースト ===== */
 .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 6px 14px; font-size: 13px; font-weight: 800; z-index: 90; letter-spacing: 0.08em; box-shadow: 3px 3px 0 var(--red); }
 

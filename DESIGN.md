@@ -490,7 +490,7 @@ interface GameState {
   finished: boolean;
 }
 ```
-issues を持たない古いセーブは読み込まない（`deserialize` が null を返す）。
+`version` は 2。古い形式（issues が無い v1 など）のセーブは `migrateState` が今の形に補完して読み込む（その周で使った争点＋足りなければシードから補い3つに。旧オープニングは新しい2件へ。欠けたフィールドは既定値）。`advance` / `drawInto` も古い形のまま渡された状態（ホットリロードでメモリに残ったもの）を補正してから抽選するので、固まらない。補正できない・壊れた状態は UI が「この任期は続行できません。新しい任期を始めてください」を出してタイトルへ戻れる（`Broken` 画面・セーブも破棄）。
 UI は `applyRuling` が返す `events`（`precedentCreated` / `cited` / `extended` / `exceptionAdded` / `overruled` / `meterChanged` / `crowd` / `authority` / `news` / `ended`）を順に演出として再生する。`meterChanged` は画面にそのまま出さず、`moodFor` で「国の様子」の一言にする。
 
 ### 8.3 バランス用シミュレーター（`npm run sim`）

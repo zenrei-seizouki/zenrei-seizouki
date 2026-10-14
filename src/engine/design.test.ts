@@ -87,12 +87,14 @@ describe('A1: 1任期に出る争点は3つ', () => {
     }
   });
 
-  it('争点が絞られる前の古いセーブは読み込まない', () => {
+  it('争点が絞られる前の古いセーブは、使った争点を含めて補完して読み込める（詳しくは save.test.ts）', () => {
     const s = newGame({ seed: 3 });
     expect(deserialize(serialize(s))?.issues).toEqual(s.issues);
     const old = JSON.parse(serialize(s));
     delete old.issues;
-    expect(deserialize(JSON.stringify(old))).toBeNull();
+    const loaded = deserialize(JSON.stringify(old));
+    expect(loaded?.issues.length).toBeGreaterThanOrEqual(ISSUES_PER_TERM);
+    expect(loaded?.issues).toContain(s.currentCase!.issue);
   });
 });
 

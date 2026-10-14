@@ -93,7 +93,8 @@ export interface RulingLog {
 }
 
 export interface GameState {
-  version: 1;
+  /** 2: 1任期に出る争点を3つに絞った（issues を持つ）。1 のセーブは migrateState で補完する */
+  version: 2;
   mode: 'normal' | 'daily';
   seed: number;
   rngState: number;

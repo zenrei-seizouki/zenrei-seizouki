@@ -20,7 +20,7 @@ const CROWD_NOTE = { plaintiff: '傍聴席は原告に同情的', defendant: '�
 const ZAWA = { plaintiff: 'がんばれー', defendant: 'そりゃそうだ', split: 'ざわ…ざわ…' };
 const SCOPE_NAME = ['狭く', 'ふつう', '広く'];
 
-export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g: GameState) => void; onEnd: (g: GameState) => void }) {
+export function Court({ game, onChange, onEnd, onBroken }: { game: GameState; onChange: (g: GameState) => void; onEnd: (g: GameState) => void; onBroken: (e: unknown) => void }) {
   const c = game.currentCase!;
   const opts = useMemo(() => optionsFor(game), [game]);
   const gov = opts.governing;
@@ -143,7 +143,12 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
 
   function pronounce(choice: Choice) {
     if (pending) return; // 二度押し防止
-    const r = applyRuling(game, choice);
+    let r: RulingResult;
+    try {
+      r = applyRuling(game, choice);
+    } catch (e) {
+      return onBroken(e); // 判決を適用できない（状態が壊れている）。画面を固めず「続行できません」へ
+    }
     setPending(r);
     setBook(false);
     setOverlay('gavel');
@@ -163,7 +168,12 @@ export function Court({ game, onChange, onEnd }: { game: GameState; onChange: (g
     if (proceeded.current) return;
     proceeded.current = true;
     const ended = r.events.some((e) => e.type === 'ended');
-    const next = advance(r.state);
+    let next: GameState;
+    try {
+      next = advance(r.state); // 次の事件の抽選。古い形の状態だと、ここで例外になりうる
+    } catch (e) {
+      return onBroken(e);
+    }
     setOverlay(null);
     if (ended) onEnd(next);
     else onChange(next);
