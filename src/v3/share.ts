@@ -104,6 +104,11 @@ export async function drawPaperCard(paper: Newspaper): Promise<string> {
     ctx.fillStyle = INK;
     const base = wrap(ctx, law.base, 690)[0];
     ctx.fillText(base, 70, y);
+    if (law.struck) {
+      // 取り消した法律は朱の取り消し線
+      ctx.fillStyle = RED;
+      ctx.fillRect(68, y - 8, ctx.measureText(base).width + 4, 3);
+    }
     if (law.exception) {
       const w = ctx.measureText(base).width;
       ctx.font = `600 20px ${KLEE}`;

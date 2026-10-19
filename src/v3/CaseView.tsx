@@ -108,7 +108,7 @@ export function CaseView({ run, onNext }: { run: RunState; onNext: (r: RunState)
           <div class="h">あなたの判例</div>
           <div class="tx">{law}</div>
         </div>
-        {run.step === run.stories.length && <p class="howto3">あなたの判例が持ち出されました。従うか、ただし書きで例外を作るか。</p>}
+        {run.step === run.stories.length && <p class="howto3">あなたの判例が持ち出されました。従うか、ただし書きで例外を作るか、取り消すか。</p>}
         <div class="vcards">
           <button class="vcard follow" onClick={() => decide('follow')}>
             <span class="chip" aria-hidden="true" />
@@ -121,6 +121,13 @@ export function CaseView({ run, onNext }: { run: RunState; onNext: (r: RunState)
             <span class="teaser">
               {law}
               <span class="ex fresh">{v.exception}</span>
+            </span>
+          </button>
+          <button class="vcard overrule" onClick={() => decide('overrule')}>
+            <span class="chip" aria-hidden="true" />
+            <span class="vlaw">判例を取り消す</span>
+            <span class="teaser">
+              <s class="strike">{law}</s>
             </span>
           </button>
         </div>
@@ -200,7 +207,7 @@ export function CaseView({ run, onNext }: { run: RunState; onNext: (r: RunState)
 }
 
 function Stamp({ answer, no }: { answer: Answer; no: number }) {
-  const sub = answer === 'follow' ? '判例どおり' : answer === 'except' ? 'ただし書き' : `第${no}号判例`;
+  const sub = answer === 'follow' ? '判例どおり' : answer === 'except' ? 'ただし書き' : answer === 'overrule' ? '取り消し' : `第${no}号判例`;
   const blue = answer === 'blue' || answer === 'follow';
   return (
     <div class="ov">
@@ -223,7 +230,7 @@ function Extra3({ run, answer, onNext }: { run: RunState; answer: Answer; onNext
   if (st.kind === 'paper') return null;
   let hl = '';
   let sub = '';
-  let law: { base: string; exception?: string; fresh?: boolean } | null = null;
+  let law: { base: string; exception?: string; fresh?: boolean; struck?: boolean } | null = null;
   if (st.kind === 'first') {
     const v = st.story.verdicts[answer as Side];
     hl = v.newsFirst.hl;
@@ -235,6 +242,10 @@ function Extra3({ run, answer, onNext }: { run: RunState; answer: Answer; onNext
       hl = `「${v.law}」、また適用`;
       sub = `${st.scene.title}は、判例どおりに決着`;
       law = { base: `${v.law}。` };
+    } else if (answer === 'overrule') {
+      hl = `「${v.law}」、取り消し`;
+      sub = `${st.scene.title}をきっかけに、判例は廃止された`;
+      law = { base: `${v.law}。`, struck: true };
     } else {
       hl = `判例に、ただし書き「${v.exception.replace(/^ただし、|。$/g, '')}」`;
       sub = `${st.scene.title}をきっかけに、条文が一行のびた`;
@@ -268,8 +279,9 @@ function Extra3({ run, answer, onNext }: { run: RunState; answer: Answer; onNext
             </div>
           </div>
           {law && (
-            <div class="lawslip">
+            <div class={`lawslip ${law.struck ? 'dead' : ''}`}>
               <div class="h">この国の法律</div>
+              {law.struck && <div class="haishi">廃止</div>}
               <div class="tx">
                 {law.base}
                 {law.exception && <span class={`ex ${law.fresh ? 'fresh' : ''}`}>{law.exception}</span>}

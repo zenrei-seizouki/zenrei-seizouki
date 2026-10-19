@@ -131,14 +131,21 @@ export function Paper3({ run, isNew, onAgain, onAlbum, onTitle }: { run: RunStat
           <small>あなたの判決</small>
         </div>
         {p.laws.map((l, i) => (
-          <div key={l.story} class="clip">
+          <div key={l.story} class={`clip ${l.struck ? 'struck' : ''}`}>
             <div class="rk">{i + 1}</div>
             <div>
               <div class="tx">
-                {l.base}
+                {l.struck ? <s class="strike">{l.base}</s> : l.base}
                 {l.exception && <span class="ex">{l.exception}</span>}
               </div>
-              <div class="ci">{l.title}より</div>
+              {l.regret && (
+                <div class="regret">
+                  {l.regret.by}「{l.regret.text}」
+                </div>
+              )}
+              <div class="ci">
+                {l.title}より{l.struck ? '・のちに取り消し' : ''}
+              </div>
             </div>
           </div>
         ))}

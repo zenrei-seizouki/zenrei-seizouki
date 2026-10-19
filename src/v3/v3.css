@@ -17,3 +17,11 @@
 .res .hero .n.mainhl { font-size: 22px; line-height: 1.45; }
 .sides3 { border-top: 1.5px solid var(--ink); padding-top: 8px; display: grid; gap: 6px; }
 .sides3 div { font-weight: 800; font-size: 14px; line-height: 1.5; padding-left: 10px; border-left: 3px solid var(--ink); }
+/* 判例を取り消す: 判決文に朱の取り消し線 */
+.vcard.overrule { box-shadow: 4px 4px 0 var(--ink); }
+.vcard.overrule .chip { background: var(--paper); background-image: linear-gradient(45deg, transparent 44%, var(--red) 44% 56%, transparent 56%); }
+.strike { text-decoration: none; background: linear-gradient(transparent 40%, var(--red) 40%, var(--red) 51%, transparent 51%) no-repeat 0 0 / 100% 100%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.vcard.overrule .strike { animation: strike 0.7s 0.5s steps(10, end) backwards; }
+@keyframes strike { from { background-size: 0 100%; } }
+.clip.struck .tx { opacity: 0.75; }
+.regret { font-family: var(--hand); font-weight: 600; font-size: 13px; color: var(--ink); margin-top: 2px; }

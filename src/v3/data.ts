@@ -32,6 +32,8 @@ export interface Verdict {
   next: Scene;
   /** ただし書き（「ただし、〜の場合を除く。」） */
   exception: string;
+  /** 取り消したとき、新聞で最初の事件の関係者が言う一言（DESIGN_V3 §3） */
+  regret: { by: string; text: string };
   /** 最初の事件の号外 */
   newsFirst: { hl: string; sub?: string };
   /** 100年後 */
@@ -82,6 +84,7 @@ export const STORIES: Story[] = [
         law: '名前に書いた物は、中に入れなければならない',
         teaser: 'たい焼き屋がざわついている',
         exception: 'ただし、たい焼きの場合を除く。',
+        regret: { by: '手羽先が好きな老人（78）', text: 'わしの手羽先は、どうなるんじゃ' },
         newsFirst: { hl: '名前に書いた物は、中に入れなければならない', sub: 'たい焼き屋がざわついている' },
         next: {
           title: 'たい焼き事件',
@@ -102,6 +105,7 @@ export const STORIES: Story[] = [
         law: '食べ物の名前は、中身の約束ではない',
         teaser: '「無農薬」の八百屋がほっとしている',
         exception: 'ただし、「無農薬」の場合を除く。',
+        regret: { by: '手羽先が好きな老人（78）', text: 'それで、隣の八百屋はどうなるんじゃ' },
         newsFirst: { hl: '食べ物の名前は、中身の約束ではない', sub: '「無農薬」の八百屋がほっとしている' },
         next: {
           title: '本当に無農薬の爺さん事件',
@@ -146,6 +150,7 @@ export const STORIES: Story[] = [
         law: '看板に書いた罰金は、見た者が払わねばならない',
         teaser: '子ども部屋のドアに、貼り紙が増えている',
         exception: 'ただし、子ども部屋のドアの場合を除く。',
+        regret: { by: '第3町内会', text: '3万円は、どうなるんですか' },
         newsFirst: { hl: '看板に書いた罰金は、見た者が払わねばならない', sub: '子ども部屋のドアに、貼り紙が増えている' },
         next: {
           title: '子ども部屋のドア事件',
@@ -166,6 +171,7 @@ export const STORIES: Story[] = [
         law: '勝手に立てた看板に、人を縛る力はない',
         teaser: '「立入禁止」の看板が、あちこちで剥がされている',
         exception: 'ただし、崖の看板の場合を除く。',
+        regret: { by: '会社員', text: '結局、払うんですか' },
         newsFirst: { hl: '勝手に立てた看板に、人を縛る力はない', sub: '「立入禁止」の看板が、あちこちで剥がされている' },
         next: {
           title: '崖の救助費事件',
@@ -209,6 +215,7 @@ export const STORIES: Story[] = [
         law: '会社の機械が言ったことは、会社の言葉である',
         teaser: '自販機が、自分の「つめた〜い」を見つめている',
         exception: 'ただし、自販機の場合を除く。',
+        regret: { by: '会社員', text: 'ソファは、9割引で届きました。返しますか' },
         newsFirst: { hl: '会社の機械が言ったことは、会社の言葉である', sub: '自販機が、自分の「つめた〜い」を見つめている' },
         next: {
           title: 'つめた〜い事件',
@@ -233,6 +240,7 @@ export const STORIES: Story[] = [
         law: '機械が勝手に言ったことに、持ち主の責任はない',
         teaser: '政治家が「予測変換」という言葉を練習している',
         exception: 'ただし、予測変換の場合を除く。',
+        regret: { by: '通販会社', text: 'AIが今『判決は取り消されました』と案内しています。止められません' },
         newsFirst: { hl: '機械が勝手に言ったことに、持ち主の責任はない', sub: '政治家が「予測変換」という言葉を練習している' },
         next: {
           title: '予測変換の公約事件',
@@ -353,6 +361,13 @@ export const NOTES: Record<string, { text: string; source: string }> = {
     text: 'カナダでは2024年、AIチャットボットが客に誤った案内をした件で、会社に責任があるとされました。',
     source: 'カナダの紛争解決機関の判断（2024年）',
   },
+};
+
+/** 判例を取り消した本の100年後（DESIGN_V3 §3） */
+export const OVERRULED: Future & { id: string } = {
+  id: 'overruled',
+  hl: '法律が平均3日で変わる国、国民は条文を覚えない',
+  ending: '朝令暮改の国',
 };
 
 /** 最初は3本で固定（DESIGN_V3 §1） */

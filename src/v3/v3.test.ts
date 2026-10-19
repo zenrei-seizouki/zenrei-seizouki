@@ -12,9 +12,9 @@ const play = (picks: Side[], follows: Follow[], cross: Side = 'blue'): RunState 
 };
 
 describe('1プレイの流れ', () => {
-  it('最初の事件3件 → 続き3件 → （交差事件）→ 百年後新聞に到達する（全64通り）', () => {
+  it('最初の事件3件 → 続き3件 → （交差事件）→ 百年後新聞に到達する（全216通り）', () => {
     const sides: Side[] = ['blue', 'red'];
-    const fs: Follow[] = ['follow', 'except'];
+    const fs: Follow[] = ['follow', 'except', 'overrule'];
     let reached = 0;
     for (const a of sides)
       for (const b of sides)
@@ -38,7 +38,7 @@ describe('1プレイの流れ', () => {
                 expect(p.side.length).toBeLessThanOrEqual(2);
                 reached++;
               }
-    expect(reached).toBe(64);
+    expect(reached).toBe(216);
   });
 
   it('続きの事件は、選んだ判決文の側の物が来る', () => {
@@ -103,6 +103,37 @@ describe('ただし書き', () => {
   });
 });
 
+describe('判例を取り消す', () => {
+  it('取り消した本は条文に取り消し線と関係者の一言、100年後は朝令暮改の国', () => {
+    const r = play(['red', 'blue', 'red'], ['follow', 'overrule', 'follow']);
+    expect(lawOf(r, 'sign')).toEqual({ base: '看板に書いた罰金は、見た者が払わねばならない。', struck: true, regret: { by: '第3町内会', text: '3万円は、どうなるんですか' } });
+    const p = newspaper(r);
+    expect(p.side.map((s) => s.ending)).toContain('朝令暮改の国');
+    expect(p.main.ending).not.toBe('朝令暮改の国'); // 従った本が主見出し
+  });
+  it('全部取り消したら、主見出しは朝令暮改の国', () => {
+    const r = play(['red', 'red', 'blue'], ['overrule', 'overrule', 'overrule']);
+    expect(newspaper(r).main).toMatchObject({ ending: '朝令暮改の国', endingId: 'overruled' });
+  });
+  it('交差事件は、条件の2本が両方生きているときだけ（取り消すと出ない）', () => {
+    // 手羽先🟦＋看板🟦 → X1。看板を取り消すと出ない
+    const alive = play(['blue', 'blue', 'red'], ['follow', 'except', 'follow']);
+    expect(alive.crossover?.id).toBe('x1');
+    let r = newRun();
+    for (const p of ['blue', 'blue', 'red'] as Side[]) r = choose(r, p);
+    expect(totalSteps(r)).toBe(7); // まだ交差事件の可能性がある
+    for (const f of ['follow', 'overrule', 'follow'] as Follow[]) r = choose(r, f);
+    // 看板🟦を取り消したので X1 も X2（看板🟦＋AI🟥）も出ない
+    expect(matchCrossover(r)).toBeUndefined();
+    expect(stepOf(r).kind).toBe('paper');
+    expect(totalSteps(r)).toBe(6);
+  });
+  it('取り消しの一言は DESIGN_V3.md の文', () => {
+    const design = readFileSync('DESIGN_V3.md', 'utf-8');
+    for (const s of STORIES) for (const side of ['blue', 'red'] as Side[]) expect(design, s.verdicts[side].regret.text).toContain(s.verdicts[side].regret.text);
+  });
+});
+
 describe('データ', () => {
   const cases = readFileSync('docs/fable_cases.md', 'utf-8');
   const crosses = readFileSync('docs/fable_crossovers.md', 'utf-8');
@@ -139,9 +170,9 @@ describe('データ', () => {
     }
   });
 
-  it('図鑑の結末は 各本2つ＋交差事件2つずつ＋ツギハギ法の国 で重複なし', () => {
+  it('図鑑の結末は 各本2つ＋交差事件2つずつ＋ツギハギ法の国＋朝令暮改の国 で重複なし', () => {
     const e = allEndings();
-    expect(e).toHaveLength(3 * 2 + 3 * 2 + 1);
+    expect(e).toHaveLength(3 * 2 + 3 * 2 + 2);
     expect(new Set(e.map((x) => x.id)).size).toBe(e.length);
   });
 
