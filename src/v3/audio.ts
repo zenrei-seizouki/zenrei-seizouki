@@ -25,16 +25,16 @@ function readMuted(): boolean {
   }
 }
 
-function readSpeed(): 1 | 2 {
+function readSpeed(): 1 | 1.5 {
   try {
-    return localStorage.getItem(SPEED_KEY) === '1' ? 1 : 2;
+    return localStorage.getItem(SPEED_KEY) === '1' ? 1 : 1.5;
   } catch {
-    return 2;
+    return 1.5;
   }
 }
-/** 声の速さ（1× か 2×。初期は 2×）。判決文・決まり文句も同じ速さ */
+/** 声の速さ（1× か 1.5×。初期は 1.5×）。判決文・決まり文句も同じ速さ */
 export const voiceSpeed = () => speed;
-export function setVoiceSpeed(s: 1 | 2) {
+export function setVoiceSpeed(s: 1 | 1.5) {
   speed = s;
   try {
     localStorage.setItem(SPEED_KEY, String(s));
@@ -44,8 +44,8 @@ export function setVoiceSpeed(s: 1 | 2) {
   if (voiceEl) voiceEl.defaultPlaybackRate = voiceEl.playbackRate = s;
   speedListeners.forEach((f) => f(s));
 }
-const speedListeners = new Set<(s: 1 | 2) => void>();
-export function onSpeedChange(f: (s: 1 | 2) => void) {
+const speedListeners = new Set<(s: 1 | 1.5) => void>();
+export function onSpeedChange(f: (s: 1 | 1.5) => void) {
   speedListeners.add(f);
   return () => speedListeners.delete(f);
 }

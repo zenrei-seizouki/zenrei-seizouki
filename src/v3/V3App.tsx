@@ -91,7 +91,7 @@ function SoundToggle() {
   );
 }
 
-/** 声の速さ 1× / 2×（初期は 2×） */
+/** 声の速さ 1× / 1.5×（初期は 1.5×） */
 function SpeedToggle() {
   const [s, setS] = useState(voiceSpeed());
   useEffect(() => {
@@ -101,7 +101,7 @@ function SpeedToggle() {
     };
   }, []);
   return (
-    <button class="tool3" onClick={() => setVoiceSpeed(s === 2 ? 1 : 2)} aria-label={`声の速さ ${s}倍（押すと${s === 2 ? 1 : 2}倍）`}>
+    <button class="tool3" onClick={() => setVoiceSpeed(s === 1.5 ? 1 : 1.5)} aria-label={`声の速さ ${s}倍（押すと${s === 1.5 ? 1 : 1.5}倍）`}>
       <span>{s}×</span>
       <small>速さ</small>
     </button>
