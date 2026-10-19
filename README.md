@@ -18,6 +18,7 @@
 - セリフ・判決文・予告・100年後は、台本（`docs/fable_cases.md` / `docs/fable_crossovers.md`）をビルド時にそのまま読み込む（一字も変えない。`src/v3/v3.test.ts` が台本と照合する）。
 - 開発時だけ `http://localhost:5173/?stories=wing,sign,chatbot` で3本を固定できる（確認・録画用。本番ビルドでは無効）。
 - スクショ: `docs/screenshots/v3/`（v1.0 は `v1-*.jpg`）。1プレイの録画: `docs/promo/play.mp4`（375px幅）
+- X投稿用の宣伝動画: `npm run promo` → `docs/promo/promo-x.mp4`（縦1080×1920・約35秒・声とBGM入り）。各場面の静止画は `docs/promo/frames/`。見せる本・判決・セリフ・テロップは `scripts/promo.ts` の頭で変える（ffmpeg と Edge が必要）
 
 ### 本・交差事件を足す手順
 1. 台本 `docs/fable_cases.md` に節を足す（`## 16. 題（争点）` と、`### 最初の事件` `### 判決文` `### 続きの事件` `### 100年後` を今の節と同じ書き方で）。
