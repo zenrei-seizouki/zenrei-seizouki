@@ -32,11 +32,38 @@
 .egroup { margin-top: 14px; }
 .egroup h3 { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; border-left: 6px solid var(--ink); padding-left: 8px; margin: 0 0 6px; }
 
-/* 音の入/切（画面右上・列の右端に合わせる） */
-.snd3 { position: fixed; top: 6px; right: max(8px, calc(50vw - 240px + 8px)); z-index: 40; width: 34px; height: 34px; padding: 0; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); font-family: inherit; font-weight: 800; line-height: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 2px 2px 0 var(--ink); cursor: pointer; }
+/* 画面右上の道具（記録・速さ・音）。列の右端に合わせる */
+.tools3 { position: fixed; top: 6px; right: max(8px, calc(50vw - 240px + 8px)); z-index: 40; display: flex; gap: 4px; }
+.tool3 { position: relative; width: 34px; height: 34px; padding: 0; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); font-family: inherit; font-weight: 800; line-height: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 2px 2px 0 var(--ink); cursor: pointer; }
+.tool3 span { font-size: 12px; }
+.tool3 small { font-size: 8px; letter-spacing: 0.1em; margin-top: 2px; }
 .snd3 span { font-size: 14px; }
-.snd3 small { font-size: 8px; letter-spacing: 0.1em; margin-top: 1px; }
 .snd3.off { color: var(--muted); }
 .snd3.off::after { content: ''; position: absolute; left: 3px; right: 3px; top: 50%; height: 2px; background: var(--red); transform: rotate(-40deg); }
-.title .issue span:last-child { margin-right: 40px; }
+.hdr-top { padding-right: 124px; }
+.res { padding-top: 46px; }
+.title .issue span:last-child { margin-right: 80px; }
 .credits3 { margin-top: 10px; font-size: 9.5px; line-height: 1.6; color: var(--muted); text-align: center; letter-spacing: 0.04em; }
+
+/* 記録（ログ） */
+.log3 { position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 60; background: var(--paper); background-image: var(--grain); display: flex; flex-direction: column; border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); }
+.log3-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 4px double var(--ink); }
+.log3-head b { font-size: 20px; font-weight: 800; letter-spacing: 0.4em; }
+.log3-head span { flex: 1; font-size: 11px; color: var(--muted); letter-spacing: 0.15em; }
+.log3-head .btn { width: auto; padding: 6px 14px; font-size: 13px; }
+.log3-body { flex: 1; overflow-y: auto; padding: 8px 12px 40px; -webkit-overflow-scrolling: touch; }
+.log3-empty { color: var(--muted); font-size: 13px; text-align: center; margin-top: 30px; }
+.log3-case { margin: 18px 0 8px; padding: 4px 0 4px 8px; border-left: 6px solid var(--ink); font-weight: 800; font-size: 15px; }
+.log3-case small { display: block; font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.15em; }
+.log3-line { margin: 6px 0; }
+.log3-line .who { font-size: 11px; font-weight: 700; color: var(--muted); }
+.log3-line .who i { font-style: normal; color: var(--paper); background: var(--indigo); padding: 0 4px; margin-right: 6px; font-size: 10px; }
+.log3-line.def .who i { background: var(--red); }
+.log3-line .tx { font-size: 14px; line-height: 1.6; padding-left: 2px; }
+.log3-result { margin: 10px 0 4px; border: 2px solid var(--ink); background: #fbf6e8; padding: 6px 8px; box-shadow: 3px 3px 0 var(--ink); }
+.log3-result .h { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; }
+.log3-result .tx { font-size: 14px; font-weight: 800; line-height: 1.5; }
+.log3-result .ex { color: var(--red); }
+.log3-result.blue, .log3-result.follow { box-shadow: 3px 3px 0 var(--indigo); }
+.log3-result.red, .log3-result.overrule, .log3-result.except { box-shadow: 3px 3px 0 var(--red); }
+.log3-result.overrule s { text-decoration-color: var(--red); text-decoration-thickness: 2px; }

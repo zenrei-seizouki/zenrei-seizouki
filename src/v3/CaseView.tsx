@@ -2,8 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { CourtBg, Gallery, GavelIcon, Portrait } from '../ui/components/art';
 import type { Side } from './data';
-import { bgm, say, sayAfter, sfx, stopVoice } from './audio';
+import { bgm, say, sayAfter, sfx, stopVoice, voiceSpeed } from './audio';
 import { choose, lawOf, stepOf, totalSteps, type Follow, type RunState, type Step } from './engine';
+import type { Progress } from './log';
 
 type Answer = Side | Follow;
 
@@ -12,7 +13,7 @@ interface Pending {
   next: RunState;
 }
 
-export function CaseView({ run, onNext }: { run: RunState; onNext: (r: RunState) => void }) {
+export function CaseView({ run, onNext, onProgress }: { run: RunState; onNext: (r: RunState) => void; onProgress?: (p: Progress) => void }) {
   // 親は新聞の段階では CaseView を出さない（step ごとに key を変えて作り直す）
   const st = stepOf(run) as Exclude<Step, { kind: 'paper' }>;
   const scene = st.scene;
@@ -28,47 +29,70 @@ export function CaseView({ run, onNext }: { run: RunState; onNext: (r: RunState)
 
   const lines = useMemo(() => [...scene.plaintiff.lines.map((t) => ({ who: 'pla' as const, t })), ...scene.defendant.lines.map((t) => ({ who: 'def' as const, t }))], [scene]);
   const cur = lines[Math.min(line, lines.length - 1)];
-  const typed = shown >= cur.t.length;
 
-  // タイプライター
+  /** 次のセリフへ（最後のセリフなら会話を終える） */
+  const advance = () => {
+    if (line < lines.length - 1) setLine(line + 1);
+    else setDone(true);
+  };
+
+  // 文字送りと声: 声の長さに合わせて文字を出し切り、声が終わったら0.4秒で次のセリフへ（タップで即送り）
+  // 声が無いセリフは、今の速さの既定の間隔で文字を出し、自動では進まない
   useEffect(() => {
-    if (done) return;
+    if (done) {
+      stopVoice(); // 掛け合いを飛ばした・読み終えたら声も止める（判決文の声はこの後 decide で鳴らす）
+      return;
+    }
+    const len = cur.t.length;
+    const base = { t0: performance.now(), n0: 0, ms: 30 / voiceSpeed() };
+    let n = 0;
     setShown(0);
-    let i = 0;
     const id = window.setInterval(() => {
-      i++;
-      setShown(i);
-      if (i >= cur.t.length) window.clearInterval(id);
-    }, 30);
-    return () => window.clearInterval(id);
+      n = Math.min(len, base.n0 + Math.floor((performance.now() - base.t0) / base.ms));
+      setShown(n);
+      if (n >= len) window.clearInterval(id);
+    }, 16);
+    let auto = 0;
+    say(cur.t, {
+      onStart: (sec) => {
+        // 声が鳴り始めた時点から、残りの文字を声の長さで出し切る
+        base.t0 = performance.now();
+        base.n0 = n;
+        base.ms = Math.max(6, (sec * 1000 * 0.92) / Math.max(1, len - n));
+      },
+      onEnd: () => {
+        auto = window.setTimeout(advance, 400);
+      },
+    });
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(auto);
+    };
   }, [line, done]);
   useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
-  // 音: 事件が始まったら法廷のBGMとざわめき。セリフが出るたびに声（前の声は止める）
+  // 音: 事件が始まったら法廷のBGMとざわめき
   useEffect(() => {
     bgm('court');
     sfx('murmur');
     return () => stopVoice();
   }, []);
   useEffect(() => {
-    if (!done) say(cur.t);
-    else stopVoice(); // 掛け合いを飛ばした・読み終えたら声も止める（判決文の声はこの後 decide で鳴らす）
-  }, [line, done]);
-  useEffect(() => {
     if (done) deskRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [done]);
+  // 記録（ログ）用に、何行目まで出たか・選んだ答えを親へ
+  useEffect(() => {
+    onProgress?.({ line, done, answer: pending?.answer });
+  }, [line, done, pending]);
 
   const tap = () => {
     if (done) return;
     sfx('tap');
-    if (!typed) return setShown(cur.t.length);
-    if (line < lines.length - 1) return setLine(line + 1);
-    setDone(true);
+    advance();
   };
   const skip = (e: Event) => {
     e.stopPropagation();
     setLine(lines.length - 1);
     setDone(true);
-    stopVoice();
   };
 
   const decide = (answer: Answer) => {
