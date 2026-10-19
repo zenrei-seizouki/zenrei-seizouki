@@ -234,5 +234,11 @@ export function achievement(album: Record<string, unknown>): { got: number; tota
   return { got, total: all.length, pct: Math.floor((got / all.length) * 100) };
 }
 
-/** X投稿文（DESIGN_V3 §2.2） */
-export const shareText = (paper: Newspaper): string => `私の国では、${paper.main.hl}。#前例製造機`;
+/** X投稿文（診断の結果のように: 結末名を【】で目立たせ、最後に「あなたは？」。URL は intent の url で後ろに付く） */
+export const shareText = (paper: Newspaper): string =>
+  `私の判決で生まれた国は【${paper.main.ending}】でした
+
+${paper.main.hl}
+
+あなたの判決で、この国はどうなる？
+#前例製造機`;

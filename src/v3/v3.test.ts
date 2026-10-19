@@ -248,9 +248,15 @@ describe('データ', () => {
     for (const k of Object.keys(NOTES)) expect(STORY_BY_ID[k], k).toBeTruthy();
   });
 
-  it('投稿文は「私の国では、{主見出し}。#前例製造機」', () => {
+  it('投稿文は診断の結果の形（【結末名】・主見出し・問いかけ・タグ）', () => {
     const r = play(['red', 'red', 'blue'], ['follow', 'follow', 'follow'], 'blue', NO_PAIR);
-    expect(shareText(newspaper(r))).toBe('私の国では、「無料」の看板で入場料3千円、全て合法に。#前例製造機');
+    const p = newspaper(r);
+    expect(shareText(p)).toBe(`私の判決で生まれた国は【${p.main.ending}】でした
+
+「無料」の看板で入場料3千円、全て合法に
+
+あなたの判決で、この国はどうなる？
+#前例製造機`);
   });
 });
 
