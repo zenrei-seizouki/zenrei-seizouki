@@ -28,6 +28,11 @@
 
 エンジン・画面のコードは触らなくてよい。図鑑の総数も自動で増える。
 
+### 音（声・効果音・BGM）
+- 再生は `src/v3/audio.ts`（Web Audio。最初のタップで起動。画面右上の「音」で入/切、設定はこの端末に保存）。ファイルが無い音は鳴らさず、無音で進む。
+- 声: `npm run voice`（`scripts/voice.ts`。VOICEVOX をローカルで起動しておく）で台本の全セリフ・判決文・決まり文句を `public/audio/voice/` に作る。セリフ本文 → ファイルの対応が `manifest.json`、表記用の話者一覧が `credits.json`（タイトルと結末図鑑に「音声：VOICEVOX:〜」と出す。利用規約で必須）。本や交差事件を足したら実行する（`src/v3/audio.test.ts` が声の無いセリフを見つける）。
+- 効果音 `public/audio/sfx/{gavel,stamp,paper,extra,murmur,strike,tap}.mp3`、BGM `public/audio/bgm/{court,extra,future}.mp3`（ループ・音量0.3。法廷→号外→百年後で切り替え）。
+
 ## 開発
 
 ```bash

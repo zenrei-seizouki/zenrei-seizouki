@@ -31,3 +31,12 @@
 .alb .pct3 b { font-size: 34px; color: var(--red); font-weight: 400; margin: 0 2px; }
 .egroup { margin-top: 14px; }
 .egroup h3 { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; border-left: 6px solid var(--ink); padding-left: 8px; margin: 0 0 6px; }
+
+/* 音の入/切（画面右上・列の右端に合わせる） */
+.snd3 { position: fixed; top: 6px; right: max(8px, calc(50vw - 240px + 8px)); z-index: 40; width: 34px; height: 34px; padding: 0; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); font-family: inherit; font-weight: 800; line-height: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 2px 2px 0 var(--ink); cursor: pointer; }
+.snd3 span { font-size: 14px; }
+.snd3 small { font-size: 8px; letter-spacing: 0.1em; margin-top: 1px; }
+.snd3.off { color: var(--muted); }
+.snd3.off::after { content: ''; position: absolute; left: 3px; right: 3px; top: 50%; height: 2px; background: var(--red); transform: rotate(-40deg); }
+.title .issue span:last-child { margin-right: 40px; }
+.credits3 { margin-top: 10px; font-size: 9.5px; line-height: 1.6; color: var(--muted); text-align: center; letter-spacing: 0.04em; }

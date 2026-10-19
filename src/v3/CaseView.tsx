@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { CourtBg, Gallery, GavelIcon, Portrait } from '../ui/components/art';
 import type { Side } from './data';
+import { bgm, say, sayAfter, sfx, stopVoice } from './audio';
 import { choose, lawOf, stepOf, totalSteps, type Follow, type RunState, type Step } from './engine';
 
 type Answer = Side | Follow;
@@ -42,12 +43,23 @@ export function CaseView({ run, onNext }: { run: RunState; onNext: (r: RunState)
     return () => window.clearInterval(id);
   }, [line, done]);
   useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
+  // 音: 事件が始まったら法廷のBGMとざわめき。セリフが出るたびに声（前の声は止める）
+  useEffect(() => {
+    bgm('court');
+    sfx('murmur');
+    return () => stopVoice();
+  }, []);
+  useEffect(() => {
+    if (!done) say(cur.t);
+    else stopVoice(); // 掛け合いを飛ばした・読み終えたら声も止める（判決文の声はこの後 decide で鳴らす）
+  }, [line, done]);
   useEffect(() => {
     if (done) deskRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [done]);
 
   const tap = () => {
     if (done) return;
+    sfx('tap');
     if (!typed) return setShown(cur.t.length);
     if (line < lines.length - 1) return setLine(line + 1);
     setDone(true);
@@ -56,19 +68,39 @@ export function CaseView({ run, onNext }: { run: RunState; onNext: (r: RunState)
     e.stopPropagation();
     setLine(lines.length - 1);
     setDone(true);
+    stopVoice();
   };
 
   const decide = (answer: Answer) => {
     if (pending) return;
     setPending({ answer, next: choose(run, answer) });
     setOverlay('gavel');
+    // 音: 木槌 → 判決文を読む → ハンコで「認容。」「棄却。」（取り消しは「取り消し。」）→ 号外
+    sfx('gavel');
+    if (st.kind === 'next') {
+      if (answer === 'overrule') say('取り消し。');
+      else {
+        say(st.story.verdicts[st.side].law);
+        sayAfter('判決。');
+      }
+    } else {
+      const v = st.kind === 'first' ? st.story.verdicts[answer as Side] : st.cross.verdicts[answer as Side];
+      say(v.law);
+      sayAfter(answer === 'blue' ? '認容。' : '棄却。');
+    }
     const t = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
     t(() => {
       setOverlay('stamp');
       setShake(true);
+      sfx(answer === 'overrule' ? 'strike' : 'stamp');
     }, 430);
     t(() => setShake(false), 850);
-    t(() => setOverlay('extra'), 1650);
+    t(() => {
+      setOverlay('extra');
+      sfx('extra');
+      bgm('extra');
+      sayAfter('号外、号外！');
+    }, 1650);
   };
 
   const speaker = done ? null : cur.who;

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import '../ui/styles.css';
 import './v3.css';
+import { bgm, installUnlock, isMuted, onMuteChange, setMuted } from './audio';
 import { CaseView } from './CaseView';
 import { newRun, newspaper, pickStories, stepOf, today, type RunState } from './engine';
 import { Album3View, Paper3, Title3, loadAlbum3, recordEnding, type Album3 } from './screens';
@@ -15,6 +16,10 @@ export function V3App() {
   const [isNew, setIsNew] = useState(false);
 
   useEffect(() => window.scrollTo(0, 0), [screen, run.step]);
+  useEffect(() => installUnlock(), []);
+  useEffect(() => {
+    if (screen === 'title') bgm('court');
+  }, [screen]);
 
   const start = () => {
     // 開発時だけ: ?stories=wing,sign,chatbot で3本を固定（録画・確認用。本番ビルドには入らない）
@@ -38,6 +43,7 @@ export function V3App() {
 
   return (
     <div class="shell">
+      <SoundToggle />
       <main class="col">
         {screen === 'title' && <Title3 album={album} onStart={start} onDaily={daily} onAlbum={() => setScreen('album')} />}
         {screen === 'case' && <CaseView key={run.step} run={run} onNext={next} />}
@@ -45,5 +51,22 @@ export function V3App() {
         {screen === 'album' && <Album3View album={album} onBack={() => setScreen('title')} />}
       </main>
     </div>
+  );
+}
+
+/** 画面右上の音の入/切（初期は入。設定はこの端末に保存） */
+function SoundToggle() {
+  const [muted, setM] = useState(isMuted());
+  useEffect(() => {
+    const off = onMuteChange(setM);
+    return () => {
+      off();
+    };
+  }, []);
+  return (
+    <button class={`snd3 ${muted ? 'off' : ''}`} onClick={() => setMuted(!muted)} aria-label={muted ? '音を出す' : '音を消す'} aria-pressed={!muted}>
+      <span>音</span>
+      <small>{muted ? '切' : '入'}</small>
+    </button>
   );
 }

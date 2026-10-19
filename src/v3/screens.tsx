@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { Portrait, TitleArt, artUrl } from '../ui/components/art';
 import { CROSSOVERS, NOTES, STORY_BY_ID } from './data';
 import { achievement, allEndings, newspaper, shareText, today, type EndingEntry, type RunState } from './engine';
+import { bgm, sfx, voiceCredits } from './audio';
 import { drawPaperCard, shareOnX } from './share';
 
 // ---- 図鑑（この端末のブラウザだけに保存） ----
@@ -24,6 +25,20 @@ export function recordEnding(album: Album3, id: string): Album3 {
     /* 保存できなくても遊べる */
   }
   return next;
+}
+
+/** VOICEVOX の表記（利用規約で必須）。credits.json が無ければ出さない */
+function VoiceCredits() {
+  const [names, setNames] = useState<string[]>([]);
+  useEffect(() => {
+    let alive = true;
+    voiceCredits().then((c) => alive && setNames(c));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  if (!names.length) return null;
+  return <div class="credits3">音声：{names.join('、')}</div>;
 }
 
 export function Title3({ album, onStart, onDaily, onAlbum }: { album: Album3; onStart: () => void; onDaily: () => void; onAlbum: () => void }) {
@@ -64,6 +79,7 @@ export function Title3({ album, onStart, onDaily, onAlbum }: { album: Album3; on
         <br />
         記録はこの端末のブラウザにのみ保存されます。
       </div>
+      <VoiceCredits />
     </div>
   );
 }
@@ -73,6 +89,8 @@ export function Paper3({ run, isNew, onAgain, onAlbum, onTitle }: { run: RunStat
   const [img, setImg] = useState('');
   useEffect(() => {
     window.scrollTo(0, 0);
+    bgm('future');
+    sfx('paper');
     let alive = true;
     drawPaperCard(p)
       .then((u) => alive && setImg(u))
@@ -224,6 +242,7 @@ export function Album3View({ album, onBack }: { album: Album3; onBack: () => voi
       <button class="btn line" style={{ marginTop: '20px' }} onClick={onBack}>
         タイトルへ戻る
       </button>
+      <VoiceCredits />
     </div>
   );
 }
