@@ -1,0 +1,19 @@
+/* v3: 判決文2枚のカード。昭和の公文書の紙片。藍＝🟦 / 朱＝🟥（色の四角で示す。絵文字は使わない） */
+.ph3 { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--ink); padding-bottom: 3px; margin: 2px 0 8px; }
+.ph3 b { font-weight: 800; font-size: 16px; letter-spacing: 0.4em; }
+.ph3 span { font-size: 11px; color: var(--muted); }
+.howto3 { font-size: 12.5px; font-weight: 700; color: var(--red); margin: 0 0 10px; line-height: 1.6; }
+.vcards { display: grid; gap: 14px; }
+.vcard { display: block; position: relative; width: 100%; text-align: left; background: #fbf6e6; border: 2px solid var(--ink); padding: 12px 14px 11px 44px; box-shadow: 4px 4px 0 var(--ink); transition: transform 0.06s, box-shadow 0.06s; }
+.vcard:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+.vcard .chip { position: absolute; left: 12px; top: 14px; width: 20px; height: 20px; border: 2px solid var(--ink); }
+.vcard.blue .chip, .vcard.follow .chip { background: var(--indigo); }
+.vcard.red .chip, .vcard.except .chip { background: var(--red); }
+.vcard.blue { box-shadow: 4px 4px 0 var(--indigo); }
+.vcard.red, .vcard.except { box-shadow: 4px 4px 0 var(--red); }
+.vcard .vlaw { display: block; font-weight: 800; font-size: 17px; line-height: 1.55; }
+.vcard .teaser { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+.vcard.except .teaser, .vcard.follow .teaser { color: var(--ink); font-weight: 700; font-size: 13px; }
+.res .hero .n.mainhl { font-size: 22px; line-height: 1.45; }
+.sides3 { border-top: 1.5px solid var(--ink); padding-top: 8px; display: grid; gap: 6px; }
+.sides3 div { font-weight: 800; font-size: 14px; line-height: 1.5; padding-left: 10px; border-left: 3px solid var(--ink); }
