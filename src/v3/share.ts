@@ -1,7 +1,7 @@
 // 百年後新聞を 1200×630 のリソグラフ風カード画像に描く（旧 ui/share.ts の画風を流用）
 import { artUrl } from '../ui/components/art';
 import type { Newspaper } from './engine';
-import { STORY_BY_ID } from './data';
+import { CROSSOVERS, STORY_BY_ID } from './data';
 
 const INK = '#231a12';
 const RED = '#c8321b';
@@ -59,9 +59,10 @@ export async function drawPaperCard(paper: Newspaper): Promise<string> {
   ctx.lineWidth = 2;
   ctx.strokeRect(34, 34, W - 68, H - 68);
 
-  // 主役の本の原告の立ち絵（交差事件なら最初の本）
+  // 主役の本の原告の立ち絵（交差事件なら交差事件の原告。新聞の本体と同じ）
+  const cross = paper.main.story ? undefined : CROSSOVERS.find((x) => paper.main.endingId.startsWith(`${x.id}-`));
   const storyId = paper.main.story ?? paper.laws[0]?.story;
-  const art = storyId ? STORY_BY_ID[storyId].first.plaintiff.art : 'cat';
+  const art = cross ? cross.scene.plaintiff.art : storyId ? STORY_BY_ID[storyId].first.plaintiff.art : 'cat';
   const im = await loadImg(artUrl('chara', art));
   if (im) {
     ctx.save();

@@ -14,7 +14,8 @@ mkdirSync(OUT, { recursive: true });
 mkdirSync(TMP, { recursive: true });
 
 /** 役 → VOICEVOX の話者。名前に含まれる語で決める（上から順に最初に当たった物） */
-const ROLES: Array<{ match: RegExp; name: string; speaker: number; speed?: number; pitch?: number }> = [
+type Voice = { name: string; speaker: number; speed?: number; pitch?: number };
+const ROLES: Array<Voice & { match: RegExp }> = [
   { match: /通訳/, name: 'No.7', speaker: 30, speed: 1.05 }, // 通訳はアナウンス調で平坦に
   { match: /老人|じい|翁|\d{2}）|ヨシオ|ツル|ゲン/, name: 'ちび式じい', speaker: 42, speed: 0.92 },
   { match: /小[1-6]|子ども|児|けんた|あおい|ゆい|たけし|そうた|ゆうと|けんじ|ケンタ/, name: '白上虎太郎', speaker: 12, speed: 1.08 },
@@ -30,10 +31,10 @@ const ROLES: Array<{ match: RegExp; name: string; speaker: number; speed?: numbe
   { match: /カラス|ハト|金魚|クロ|ポッポ/, name: '猫使ビィ', speaker: 60 },
   { match: /会社員|配達員|乗客|客|同僚|経理|企画|営業|組合|新入社員/, name: '玄野武宏', speaker: 11 },
 ];
-const JUDGE = { name: '青山龍星', speaker: 13, speed: 0.95 }; // 判決文の読み上げ
-const FALLBACK = { name: '玄野武宏', speaker: 11 };
+const JUDGE: Voice = { name: '青山龍星', speaker: 13, speed: 0.95 }; // 判決文の読み上げ
+const FALLBACK: Voice = { name: '玄野武宏', speaker: 11 };
 
-const roleFor = (partyName: string, line: string) => {
+const roleFor = (partyName: string, line: string): Voice => {
   if (line.startsWith('（通訳）')) return ROLES[0];
   return ROLES.find((r) => r.match.test(partyName)) ?? FALLBACK;
 };

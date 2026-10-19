@@ -25,3 +25,9 @@
 @keyframes strike { from { background-size: 0 100%; } }
 .clip.struck .tx { opacity: 0.75; }
 .regret { font-family: var(--hand); font-weight: 600; font-size: 13px; color: var(--ink); margin-top: 2px; }
+
+/* 結末図鑑 v1.0: 達成率と、本ごとの見出し */
+.alb .pct3 { font-family: 'Dela Gothic One', sans-serif; font-size: 14px; margin: -4px 0 6px; letter-spacing: 0.08em; }
+.alb .pct3 b { font-size: 34px; color: var(--red); font-weight: 400; margin: 0 2px; }
+.egroup { margin-top: 14px; }
+.egroup h3 { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; border-left: 6px solid var(--ink); padding-left: 8px; margin: 0 0 6px; }

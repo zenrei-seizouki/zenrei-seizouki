@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { Portrait, TitleArt, artUrl } from '../ui/components/art';
 import { CROSSOVERS, NOTES, STORY_BY_ID } from './data';
-import { allEndings, newspaper, shareText, type RunState } from './engine';
+import { achievement, allEndings, newspaper, shareText, today, type EndingEntry, type RunState } from './engine';
 import { drawPaperCard, shareOnX } from './share';
 
 // ---- 図鑑（この端末のブラウザだけに保存） ----
@@ -26,10 +26,10 @@ export function recordEnding(album: Album3, id: string): Album3 {
   return next;
 }
 
-export function Title3({ album, onStart, onAlbum }: { album: Album3; onStart: () => void; onAlbum: () => void }) {
+export function Title3({ album, onStart, onDaily, onAlbum }: { album: Album3; onStart: () => void; onDaily: () => void; onAlbum: () => void }) {
   const [keyFailed, setKeyFailed] = useState(false);
-  const all = allEndings();
-  const got = all.filter((e) => album[e.id]).length;
+  const { got, total, pct } = achievement(album);
+  const [, m, d] = today().split('-').map(Number);
   return (
     <div class="title">
       <div class="issue">
@@ -52,8 +52,11 @@ export function Title3({ album, onStart, onAlbum }: { album: Album3; onStart: ()
         <button class="btn red" onClick={onStart}>
           開廷する<small>3つの事件・約5分</small>
         </button>
+        <button class="btn" onClick={onDaily}>
+          本日の3本<small>{m}月{d}日・全員同じ事件</small>
+        </button>
         <button class="btn line" onClick={onAlbum}>
-          結末図鑑　{got} / {all.length}
+          結末図鑑　{got} / {total}（{pct}%）
         </button>
       </div>
       <div class="foot">
@@ -95,7 +98,7 @@ export function Paper3({ run, isNew, onAgain, onAlbum, onTitle }: { run: RunStat
           <div class="em">例</div>
           <div>
             <div class="t">百年後新聞</div>
-            <div class="s">建国百年記念号</div>
+            <div class="s">{run.daily ? `建国百年記念号・本日の3本（${Number(run.daily.slice(5, 7))}月${Number(run.daily.slice(8))}日）` : '建国百年記念号'}</div>
           </div>
           <div class="r">
             第36500号
@@ -183,32 +186,41 @@ export function Paper3({ run, isNew, onAgain, onAlbum, onTitle }: { run: RunStat
 }
 
 export function Album3View({ album, onBack }: { album: Album3; onBack: () => void }) {
-  const all = allEndings();
-  const got = all.filter((e) => album[e.id]).length;
+  const { got, total, pct } = achievement(album);
+  const groups = new Map<string, EndingEntry[]>();
+  for (const e of allEndings()) groups.set(e.group, [...(groups.get(e.group) ?? []), e]);
   return (
     <div class="alb">
       <h2>結末図鑑</h2>
       <div class="sub">
-        あなたの判決が作った国の、百年後。解除 {got} / {all.length}
+        あなたの判決が作った国の、百年後。解除 {got} / {total}
+      </div>
+      <div class="pct3">
+        達成率 <b>{pct}</b>%
       </div>
       <div class="prog">
-        <i style={{ width: `${(got / all.length) * 100}%` }} />
+        <i style={{ width: `${(got / total) * 100}%` }} />
       </div>
-      <div class="egrid">
-        {all.map((e) =>
-          album[e.id] ? (
-            <div class="eg" key={e.id}>
-              <span class="cnt">×{album[e.id].count}</span>
-              <div class="n">{e.name}</div>
-              <div class="t">{e.hl}</div>
-            </div>
-          ) : (
-            <div class="eg lock" key={e.id}>
-              <div class="n">？？？</div>
-            </div>
-          ),
-        )}
-      </div>
+      {[...groups].map(([g, es]) => (
+        <section class="egroup" key={g}>
+          <h3>{g}</h3>
+          <div class="egrid">
+            {es.map((e) =>
+              album[e.id] ? (
+                <div class="eg" key={e.id}>
+                  <span class="cnt">×{album[e.id].count}</span>
+                  <div class="n">{e.name}</div>
+                  <div class="t">{e.hl}</div>
+                </div>
+              ) : (
+                <div class="eg lock" key={e.id}>
+                  <div class="n">？？？</div>
+                </div>
+              ),
+            )}
+          </div>
+        </section>
+      ))}
       <button class="btn line" style={{ marginTop: '20px' }} onClick={onBack}>
         タイトルへ戻る
       </button>
