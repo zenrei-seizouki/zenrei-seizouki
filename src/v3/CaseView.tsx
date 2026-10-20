@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { CourtBg, Gallery, GavelIcon, Portrait } from '../ui/components/art';
 import type { Side } from './data';
-import { bgm, say, sayAfter, sfx, stopVoice, voiceSpeed } from './audio';
+import { bgm, preloadVoices, say, sayAfter, sfx, stopVoice, voiceSpeed } from './audio';
 import { choose, lawOf, stepOf, totalSteps, type Follow, type RunState, type Step } from './engine';
 import type { Progress } from './log';
 
@@ -76,6 +76,10 @@ export function CaseView({ run, onNext, onProgress }: { run: RunState; onNext: (
     sfx('murmur');
     return () => stopVoice();
   }, []);
+  // 声は事件が始まった時点で、この事件の分を全部先に読み込む（セリフごとの読み込み待ちで途切れないように）
+  useEffect(() => {
+    void preloadVoices([...lines.map((l) => l.t), '判決。', '認容。', '棄却。', '取り消し。', '号外、号外！']);
+  }, [lines]);
   useEffect(() => {
     if (done) deskRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [done]);

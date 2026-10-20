@@ -129,6 +129,9 @@ async function main() {
     const wavPath = join(TMP, `${id}.wav`);
     writeFileSync(wavPath, wav);
     execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', wavPath, '-ac', '1', '-ar', '24000', '-codec:a', 'libmp3lame', '-q:a', '6', mp3]);
+    // 1.5倍速版（スマホで再生時に速度変換すると途切れるので、先に作っておく）
+    mkdirSync(join(OUT, '../voice15'), { recursive: true });
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', mp3, '-af', 'rubberband=tempo=1.5:pitchq=quality', '-ac', '1', '-ar', '24000', '-codec:a', 'libmp3lame', '-q:a', '6', join(OUT, '../voice15', `${id}.mp3`)]);
     made++;
     process.stdout.write(`\r${made} 件生成 … ${job.name}: ${job.speak.slice(0, 24)}`.padEnd(70));
   }

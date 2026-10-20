@@ -41,7 +41,6 @@ export function setVoiceSpeed(s: 1 | 1.5) {
   } catch {
     /* 保存できなくても切り替えは効く */
   }
-  if (voiceEl) voiceEl.defaultPlaybackRate = voiceEl.playbackRate = s;
   speedListeners.forEach((f) => f(s));
 }
 const speedListeners = new Set<(s: 1 | 1.5) => void>();
@@ -59,7 +58,6 @@ export function setMuted(m: boolean) {
     /* 保存できなくても切り替えは効く */
   }
   if (master && ctx) master.gain.setTargetAtTime(m ? 0 : 1, ctx.currentTime, 0.05);
-  if (voiceEl) voiceEl.muted = m;
   if (!m) {
     unlock();
     if (wantBgm) startBgm(wantBgm);
@@ -84,8 +82,6 @@ export function unlock() {
       master.connect(ctx.destination);
     }
     if (ctx.state === 'suspended') void ctx.resume();
-    const el = voiceElement();
-    if (el && !el.src) el.play().catch(() => {});
     if (wantBgm && !bgmNode) startBgm(wantBgm);
   } catch {
     ctx = null;
@@ -148,22 +144,18 @@ export async function hasVoice(text: string): Promise<boolean> {
   return !!(await voices())[text];
 }
 
-// 声は <audio> で鳴らす（速さを上げても音程が変わらない preservesPitch のため）。音量・ミュートは AudioContext 経由
-let voiceEl: HTMLAudioElement | null = null;
-function voiceElement(): HTMLAudioElement | null {
-  if (voiceEl || typeof Audio === 'undefined') return voiceEl;
-  const el = new Audio();
-  el.preload = 'auto';
-  el.preservesPitch = true;
-  (el as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = true;
-  el.muted = muted;
-  try {
-    if (ctx && master) ctx.createMediaElementSource(el).connect(master);
-  } catch {
-    /* つなげなくても、そのまま鳴る */
+// 声は Web Audio のバッファで鳴らす。1.5倍速は再生時に変換せず、あらかじめ作った voice15/ を使う
+// （スマホでは再生中の速度変換や <audio> の都度読み込みで、音が途切れやすいため）
+const voicePath = (file: string) => `${speed === 1.5 ? 'voice15' : 'voice'}/${file}`;
+
+/** これから読むセリフの声を先に読み込んでおく（事件が始まったときに呼ぶ） */
+export async function preloadVoices(texts: string[]) {
+  if (!ctx) return;
+  const m = await voices();
+  for (const t of texts) {
+    const v = m[t];
+    if (v) void load(voicePath(v.file));
   }
-  voiceEl = el;
-  return el;
 }
 
 export interface SayHooks {
@@ -176,6 +168,7 @@ type Item = { text: string; hooks?: SayHooks };
 let playing = false;
 let queue: Item[] = [];
 let token = 0;
+let voiceNode: AudioBufferSourceNode | null = null;
 
 /** セリフを読む。前のセリフ（と順番待ち）は止める。声が無ければ何もしない（フックも呼ばない） */
 export function say(text: string, hooks?: SayHooks) {
@@ -192,44 +185,47 @@ export function stopVoice() {
   token++;
   queue = [];
   playing = false;
-  if (voiceEl) {
-    voiceEl.onloadedmetadata = voiceEl.onended = null;
-    voiceEl.pause();
+  if (voiceNode) {
+    voiceNode.onended = null;
+    try {
+      voiceNode.stop();
+    } catch {
+      /* もう止まっている */
+    }
+    voiceNode = null;
   }
 }
 async function next(t: number): Promise<void> {
   const item = queue[0];
-  const el = ctx ? voiceElement() : null;
-  if (!item || !el) {
+  if (!item || !ctx || !master) {
     queue = [];
     return;
   }
   const v = (await voices())[item.text];
   if (t !== token) return;
-  if (!v) {
+  const buf = v ? await load(voicePath(v.file)) : null;
+  if (t !== token) return;
+  if (!buf) {
     queue.shift();
     if (queue.length) return next(t);
     return;
   }
-  // ミュート中も無音で再生して、文字送り・自動送りの間合いは同じにする
-  el.muted = muted;
-  el.src = `${BASE}voice/${v.file}`;
-  el.defaultPlaybackRate = el.playbackRate = speed;
-  el.preservesPitch = true;
+  // ミュート中も（master の音量0で）鳴らして、文字送り・自動送りの間合いは同じにする
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(master);
+  voiceNode = src;
   playing = true;
-  el.onloadedmetadata = () => {
-    if (t === token && isFinite(el.duration)) item.hooks?.onStart?.(el.duration / speed);
-  };
-  el.onended = () => {
+  src.onended = () => {
     if (t !== token) return;
     playing = false;
+    voiceNode = null;
     queue.shift();
     item.hooks?.onEnd?.();
     if (queue.length) void next(t);
   };
-  el.play().catch(() => {
-    if (t === token) playing = false;
-  });
+  src.start();
+  item.hooks?.onStart?.(buf.duration);
 }
 
 // ---- 効果音 ----
